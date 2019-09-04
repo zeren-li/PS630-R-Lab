@@ -1,0 +1,162 @@
+---
+title: "R Lab I"
+author: "Zeren Li"
+date: "9/2/2019"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+```
+
+## Roadmap
+  - R Markdown
+  - Seeing theory
+  - Analyzing real dataset
+  - Problem set
+
+## R Markdown
+
+Installing R Markdown: https://bookdown.org/yihui/rmarkdown/
+Frequently asked questions: https://yihui.name/knitr/faq/
+
+
+## Seeing Theory
+
+"Seeing Theory is a project designed and created by Daniel Kunin with support from Brown University's Royce Fellowship Program. The goal of the project is to make statistics more accessible to a wider range of students through interactive visualizations."
+
+Check this: https://seeing-theory.brown.edu/basic-probability/index.html
+
+### Importing  dataset
+
+Here are various ways of importing data:
+
+```{r}
+library(readr)
+library(tidyverse)
+library(haven)
+
+# set working directory (set your own working directory)
+setwd("")
+
+# RData (R)
+load("UNpop.RData")
+# csv
+UNpop <- read_csv("./UNpop.csv") # readr package
+#dta (Stata)
+UNpop_stata_new <- read_dta("UNpop.dta") # haven package (new)
+```
+
+
+# Read CEO data
+
+```{r}
+ceo = read_dta("CEOSAL2.DTA") # read CEO dataset
+class(ceo)
+summary(ceo$salary) 
+```
+
+### Mean and Variance 
+
+$$\text{E}[X] = \sum_{x \in \mathcal{X}}xP(x)$$ 
+
+```{r}
+m_salary = sum(ceo$salary)/length(ceo$salary)
+mean(ceo$salary)
+```
+
+sample variance:
+$$
+\text{Var}(X) = \text{E}[(X - \text{E}[X])^2]
+$$
+
+```{r}
+sum( (ceo$salary - m_salary)^2 )/ (length(ceo$salary)-1)
+var(ceo$salary)
+```
+
+###	Sample Covariance & Correlation
+
+
+$$Cov(X,Y) = E[(X-E(X)E(Y-E(Y))]$$
+
+$$Corr(X,Y) = \frac{E[(X-E(X)E(Y-E(Y))]}{\sqrt{Var(X)Var(Y)}}$$
+
+We would like look at the covariance and coreelation between CEO's salary and firm peformance measured by profit margins
+```{r}
+cov(ceo$salary,ceo$profmarg,) # covariance
+m_profmarg = sum(ceo$profmarg)/length(ceo$profmarg)
+sum((ceo$salary - m_salary) * (ceo$profmarg - m_profmarg ))/(length(ceo$profmarg) - 1) 
+
+
+cor(ceo$salary,ceo$profmarg) # correlation
+
+# how to compute manually?
+```
+
+# CDF and PDF of Normal Distribution
+
+```{r}
+plot(ceo$salary) # one-way scatterplot
+
+plot(ceo$salary, ceo$profmarg)
+
+hist(ceo$salary,main="Histogram of CEO's salary")
+plot(density(ceo$salary),main="Density estimate of CEO's salary")
+plot(ecdf(ceo$salary),main=  "Empirical cumulative distribution function")
+```
+
+## Exploring Real Data 
+
+```{r}
+# load package
+library(wbstats)
+library(readr)
+library(foreign) 
+library(haven)
+```
+
+
+
+### View Data
+```{r eval=FALSE, include=FALSE}
+# View data
+View(data)
+```
+
+### Exploratory Analysis
+
+```{r}
+class(ceo) # the type of data structure
+
+dim(ceo) # dimension
+
+names(ceo) # variable names (column)
+
+nrow(ceo) # number of row
+
+ncol(ceo) # number of column
+
+# filter
+ceo_1to5 <- ceo[c(1:5), ]
+# View(data_s1)
+
+# select variables   
+# after viewing the data, we decide we need only the "country" and "value" column
+names(ceo_1to5)
+ceo_1to5 <- ceo_1to5[, c("salary", "profmarg")]
+
+# rename variable  
+# rename the second column to "GDP_PAP_2016" 
+names(ceo_1to5)[2] <- "profit_margin"
+# View(data_s2)
+# Remove 
+  rm(ceo_1to5)
+```
+
+
+
+
+

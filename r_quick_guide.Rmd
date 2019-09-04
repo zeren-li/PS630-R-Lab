@@ -1,0 +1,86 @@
+---
+title: "PS630 R Lab Session Quick Guide"
+author: "Zeren Li"
+output:
+  pdf_document: default
+---
+# R
+
+R is a free software environment for statistical computing and graphics. It compiles and runs on a wide variety of UNIX platforms, Windows and MacOS.
+
+# RStudio 
+
+RStudio is an integrated development environment (IDE) for R. It includes a console, syntax-highlighting editor that supports direct code execution, as well as tools for plotting, history, debugging and workspace management. 
+
+# R Markdown
+
+R Markdown provides an authoring framework for data science. You can use a single R Markdown file to both 
+
+  - save and execute code 
+  - generate high quality reports that can be shared with an audience
+
+R Markdown documents are fully reproducible and support dozens of static and dynamic output formats. R Markdown has the following features:
+
+- Fully reproducible reports
+- Simple markdown syntax for text
+- Code goes in chunks
+
+Tip: Keep the Markdown cheat sheet handy, we’ll refer to it often as the course progresses.
+Check the cheat sheet: https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf
+
+# Installation
+
+Please install R and RStudio from the following websites before the first lab session. You should first install R and then install RStudio. In this lab session, we use the R version of 3.6.0 (or later) and RStudio Desktop. Both are free :).
+
+## Installing R
+
+ - Open an internet browser and go to www.r-project.org.
+ - Click the "download R" link in the middle of the page under "Getting Started."
+ - Select a CRAN location (a mirror site) and click the corresponding link.
+ - Click on the  "Download R for Windows" or "Download R for (Mac) OS X". You could also use Linux if you are a Linux User.
+ -  Click on the file containing the latest version of R under "Files."
+ - Save the file, double-click it to open, and follow the installation instructions.
+ 
+## Installing RStudio
+
+ - Go to https://www.rstudio.com/products/rstudio/download/
+ - Click on "Download RStudio Desktop."
+ - Click on the version recommended for your system, save the downloaded file on your computer, double-click it to open, and follow the installation instructions.
+
+# Using RStudio
+
+This is a quick guide of RStudio Interface: https://dss.princeton.edu/training/RStudio101.pdf. Highly recommended for R beginners.
+
+
+## Installing Packages in R or RStudio
+
+- After installing R and RStudio, open RStudio
+- In the `console`, enter the following codes
+
+```{r eval=FALSE}
+# install packages
+install.packages("tidyverse")
+install.packages("rmarkdown")
+```
+
+## Installing R Markdown in RStudio
+
+In this class, we primarily use R Markdown to present our work and do problem sets. 
+
+You could check this quick tour of R Markdown: https://rmarkdown.rstudio.com/authoring_quick_tour.html
+
+Here is the cheat sheet :))
+
+https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf
+
+# Good Programming Habits
+
+Nice programming style helps exchange ideas with other R users. You could read [http://adv-r.had.co.nz/Style.html](R Style) for advice on writing readable code. 
+
+#  Reference
+
+- R Project: https://www.r-project.org/
+- R Studio: https://www.rstudio.com/
+- R Markdown: https://rmarkdown.rstudio.com/lesson-1.html
+- Advanced R: http://adv-r.had.co.nz/
+
