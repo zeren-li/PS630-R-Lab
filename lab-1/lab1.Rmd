@@ -54,10 +54,10 @@ Here are various ways of importing data:
 
 ```{r read_data, message=FALSE}
 # load packages
-library(readr)
-library(tidyverse) 
-library(haven)
-
+library(readr) # read csv,txt files
+library(tidyverse) # powerful set of data science packages
+library(haven) # read stata files
+library(stargazer) # regression table
 # set working directory (set your own directory)
 setwd("./")
 
@@ -123,8 +123,14 @@ names(ceo_1)[2] <- "profit_margin"
 names(ceo_1)
 
 rm(ceo_1) # remove dataset
-
 ```
+
+A bit beautiful summary statistics...
+
+```{r, results =  "asis"}
+stargazer(data.frame(ceo))  # summarize the variable
+```
+
 
 ### Mean and Variance 
 
