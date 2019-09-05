@@ -1,0 +1,217 @@
+---
+title: "R Lab I"
+author: "Zeren Li"
+date: "9/2/2019"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls()) # remove all object
+```
+
+## Roadmap
+
+  - R Markdown
+  - Seeing theory
+  - Exploring CEO salary dataset
+  - Problem set
+  
+## R Markdown
+
+This is an R [R Markdown](http://rmarkdown.rstudio.com) Notebook.
+
+Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. 
+
+- R [R Markdown] mainly consists of three parts: YAML header, texts, and `r` code chunck.
+
+- RMarkdown usually begins with a  YAML header (optional) surrounded by `---`s, the header specifies meta information.
+
+- You can write your texts with features like using header `#`, *italic*, **bold** , etc.
+
+- When you run code within [R Markdown](http://rmarkdown.rstudio.com), the results show below the chunk of code.
+
+- You can set chunk global options that apply to every chunk in your file. This is done by calling `knitr::opts_chunk$set` in this code chunk. However, these global defaults can be overwritten in individual chunk headers.
+
+- To understand more chunck options like `echo = TRUE`, `message = FALSE`, and `warning = FALSE`, check [RMarkdown tips and tricks](https://rmarkdown.rstudio.com/lesson-3.html). 
+
+- Insert a new chunk: click the *Insert Chunk* button & using *Cmd+Option+I*.
+
+- Execute chunk: click the *Run* button within the chunk or using *Cmd+Shift+Enter*. 
+
+- Click the **Knit** button to generate a document that includes both contents as well as the output of any embedded R code chunks within the document. 
+
+## Seeing Theory
+
+"**Seeing Theory** is a project designed and created by Daniel Kunin with support from Brown University's Royce Fellowship Program. The goal of the project is to make statistics more accessible to a wider range of students through interactive visualizations."
+
+Check this: https://seeing-theory.brown.edu/basic-probability/index.html
+
+### Importing  dataset
+
+Here are various ways of importing data:
+
+```{r read_data, message=FALSE}
+# load packages
+library(readr)
+library(tidyverse) 
+library(haven)
+
+# set working directory (set your own directory)
+setwd("./")
+
+# RData (R)
+load("UNpop.RData")
+
+# csv
+UNpop <- read_csv("./UNpop.csv") # readr package
+
+# dta (Stata)
+UNpop_stata_new <- read_dta("UNpop.dta") # haven package (new)
+```
+
+###  Read CEO data
+
+```{r}
+ceo = read_dta("./CEOSAL2.DTA") # read CEO dataset
+```
+
+### View Data
+
+```{r view_data, eval=FALSE, include=FALSE}
+# View data
+View(data)
+```
+
+### Explore CEO data
+
+```{r}
+class(ceo) # type of object
+
+names(ceo) # variable names (column)
+
+nrow(ceo) # number of rows
+
+ncol(ceo) # number of columns
+
+summary(ceo)  # summarize the dataset
+
+summary(ceo$salary)  # summarize the variable
+
+length(ceo) # length of a dataset means # of variables
+
+length(ceo$salary)  # length of a variable means # of obs
+
+head(ceo) # show the first 5 rows of the dataset
+
+table(ceo$grad) # show the frequency of a categorical variable
+
+ceo_grate <- ceo[ceo$grad == 1,] # fiter by condition(s)
+
+ceo_over_1kk <- ceo[ceo$salary > 1000,] # fiter by conditionn(s)
+
+ceo_1to5 <- ceo[c(1:5), ] # filter by index
+
+ceo_1 <- ceo[,c("salary", "profmarg")] # select by variable name
+
+ceo_var1to5 <- ceo[,c(1:5)] # select by index
+
+# rename variable  
+names(ceo_1)
+names(ceo_1)[2] <- "profit_margin" 
+names(ceo_1)
+
+rm(ceo_1) # remove dataset
+
+```
+
+### Mean and Variance 
+
+population mean: 
+
+$$\mu = \frac{\sum_{i=1}^n{x_i}}{n}$$ 
+
+sample mean: 
+
+$$\bar x = \frac{\sum_{i=1}^n{x_i}}{n}$$ 
+
+
+```{r}
+m_salary <- sum(ceo$salary)/length(ceo$salary)
+m_salary
+mean(ceo$salary)
+```
+
+population variance:
+$$
+\sigma^2 = \text{E}[(X - \text{E}[X])^2]
+$$
+
+sample variance:
+
+$$
+s^2 = \frac{\sum_{i=1}^n(x_i - \bar x)^2}{n-1}
+$$
+
+```{r}
+sum( (ceo$salary - m_salary)^2 ) / (length(ceo$salary)-1)
+var(ceo$salary) # R computes sample variance
+```
+
+### Covariance & Correlation
+
+population covariance:
+
+$$Cov(X,Y) = E[(X-E(X)(Y-E(Y))]$$
+
+sample covariance:
+
+$$Cov(X,Y) = \frac{ \sum_{i=1}^n(x_i -\bar x)  (y_i -\bar y)}{n-1} $$
+
+We would like to look at the covariance and correlation between CEO's salary and firm performance measured by profit margins.
+
+```{r}
+cov(ceo$salary,ceo$profmarg) # covariance
+
+m_profmarg = sum(ceo$profmarg)/length(ceo$profmarg)
+sum((ceo$salary - m_salary) * (ceo$profmarg - m_profmarg ))/(length(ceo$profmarg) - 1) 
+```
+
+
+$$Corr(X,Y) = \frac{E[(X-E(X)E(Y-E(Y))]}{\sqrt{Var(X)Var(Y)}}$$
+
+```{r}
+cor(ceo$salary,ceo$profmarg) # correlation
+
+# How to compute manually? 
+# Show it in the problem set, it should be the same as the result from cor()
+```
+
+# CDF and PDF of Normal Distribution
+
+R basic graph
+
+```{r}
+plot(ceo$salary) # one-way scatterplot
+
+plot(ceo$salary, ceo$profmarg) # two-way scatterplot
+
+hist(ceo$salary, main = "Histogram of CEO's salary") # histogram
+
+boxplot(ceo$salary) # boxplot
+
+plot(density(ceo$salary), main = "Density estimate of CEO's salary") # pdf
+
+plot(ecdf(ceo$salary),main = "Empirical cumulative distribution function") # cdf
+```
+
+## Other resources
+
+Installing RMarkdown: https://bookdown.org/yihui/rmarkdown/
+
+Frequently asked questions: https://yihui.name/knitr/faq/
+
+RMarkdown cheatsheet: https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf
+
+R Style: http://adv-r.had.co.nz/Style.html
