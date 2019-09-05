@@ -17,7 +17,7 @@ In this problem set, we analyze a subsample of Professor Malesky's dataset that 
 - `code_station`: code of the monitor station
 - `carbon`: carbon dioxide emission
 - `nitro`: nitrogen record emission
-- `lucky`:  TO BE ADDED
+- `lucky`: Whether that day lucky numbers (6,8,9) are supposed to be off the road
 
 1. Load the `CEOSAL2.dta` 
 
@@ -41,7 +41,7 @@ In this problem set, we analyze a subsample of Professor Malesky's dataset that 
    - empirical cdf
     
 
-6. What's the potential research question(s) or hypotheses you would like e to explore using this data? (You can write one or two sentences stating your question of interest)
+6. What's the potential research question(s) or hypotheses you would like e to explore using this data? (You can write one or two sentences stating your question(s) of interest)
 
 
 

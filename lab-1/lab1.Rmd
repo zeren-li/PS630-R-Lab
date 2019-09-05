@@ -20,13 +20,13 @@ rm(list = ls()) # remove all object
   
 ## R Markdown
 
-This is an R [R Markdown](http://rmarkdown.rstudio.com) Notebook.
+- This is an R Markdown (http://rmarkdown.rstudio.com) Notebook.
 
-Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. 
+- Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. 
 
-- R [R Markdown] mainly consists of three parts: YAML header, texts, and `r` code chunck.
+- R Markdown mainly consists of three parts: YAML header, texts, and `r` code chunck.
 
-- RMarkdown usually begins with a  YAML header (optional) surrounded by `---`s, the header specifies meta information.
+- R Markdown usually begins with a  YAML header (optional) surrounded by `---`s, the header specifies meta information.
 
 - You can write your texts with features like using header `#`, *italic*, **bold** , etc.
 
@@ -48,7 +48,7 @@ Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word docu
 
 Check this: https://seeing-theory.brown.edu/basic-probability/index.html
 
-### Importing  dataset
+### Importing dataset
 
 Here are various ways of importing data:
 
@@ -61,13 +61,13 @@ library(haven)
 # set working directory (set your own directory)
 setwd("./")
 
-# RData (R)
+# read RData (R)
 load("UNpop.RData")
 
-# csv
+# read csv
 UNpop <- read_csv("./UNpop.csv") # readr package
 
-# dta (Stata)
+# read dta (Stata)
 UNpop_stata_new <- read_dta("UNpop.dta") # haven package (new)
 ```
 
@@ -79,7 +79,7 @@ ceo = read_dta("./CEOSAL2.DTA") # read CEO dataset
 
 ### View Data
 
-```{r view_data, eval=FALSE, include=FALSE}
+```{r view_data, eval=FALSE}
 # View data
 View(data)
 ```
@@ -198,8 +198,6 @@ plot(ceo$salary) # one-way scatterplot
 plot(ceo$salary, ceo$profmarg) # two-way scatterplot
 
 hist(ceo$salary, main = "Histogram of CEO's salary") # histogram
-
-boxplot(ceo$salary) # boxplot
 
 plot(density(ceo$salary), main = "Density estimate of CEO's salary") # pdf
 
