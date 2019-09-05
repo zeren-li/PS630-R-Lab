@@ -188,9 +188,7 @@ cor(ceo$salary,ceo$profmarg) # correlation
 # Show it in the problem set, it should be the same as the result from cor()
 ```
 
-# CDF and PDF of Normal Distribution
-
-R basic graph
+# R graph
 
 ```{r}
 plot(ceo$salary) # one-way scatterplot
