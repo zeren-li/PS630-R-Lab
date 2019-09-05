@@ -34,7 +34,7 @@ rm(list = ls()) # remove all object
 
 - You can set chunk global options that apply to every chunk in your file. This is done by calling `knitr::opts_chunk$set` in this code chunk. However, these global defaults can be overwritten in individual chunk headers.
 
-- To understand more chunck options like `echo = TRUE`, `message = FALSE`, and `warning = FALSE`, check [RMarkdown tips and tricks](https://rmarkdown.rstudio.com/lesson-3.html). 
+- To understand more chunck options like `echo = TRUE`, `message = FALSE`, and `warning = FALSE`, check [*RMarkdown tips and tricks*](https://rmarkdown.rstudio.com/lesson-3.html). 
 
 - Insert a new chunk: click the *Insert Chunk* button & using *Cmd+Option+I*.
 
@@ -66,22 +66,19 @@ load("UNpop.RData")
 
 # read csv
 UNpop <- read_csv("./UNpop.csv") # readr package
-
-# read dta (Stata)
-UNpop_stata_new <- read_dta("UNpop.dta") # haven package (new)
 ```
 
 ###  Read CEO data
 
 ```{r}
-ceo = read_dta("./CEOSAL2.DTA") # read CEO dataset
+# read dta (Stata)
+ceo = read_dta("./CEOSAL2.DTA") # read CEO dataset using haven
 ```
 
 ### View Data
 
 ```{r view_data, eval=FALSE}
-# View data
-View(data)
+View(data) # View data
 ```
 
 ### Explore CEO data

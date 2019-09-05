@@ -17,25 +17,25 @@ In this problem set, we analyze a subsample of Professor Malesky's dataset that 
 - `code_station`: code of the monitor station
 - `carbon`: carbon dioxide emission
 - `nitro`: nitrogen record emission
-- `lucky`: Whether that day lucky numbers (6,8,9) are supposed to be off the road
+- `lucky`: whether that day lucky numbers (6,8,9) are supposed to be off the road
 
-1. Load the `CEOSAL2.dta` 
+1. Load the `week1.dta` 
 
-2. Provide a summary of the dataset, you could use `summary`, `dim` etc. Also, answer the following questions:
+2. Provide a summary of the dataset, you could use `summary`, `dim` etc. Also, answer the following questions (3pts):
     - what is the number of observations?
     - what is the time frame 
     - what is the variable type of `year`,`code_station`, and `carbon` (categorical, numeric, ordinal)
 
-3. Compute the following statistic manually (you are only allowed to use basic functions like `sum`, `length`, etc.). Then compare the results with the built-in functions (e.g. `mean()`, ` cov()`, etc.). Do they have the same value?
+3. Compute the following statistic manually (you are only allowed to use basic functions like `sum`, `length`, etc.). Then compare the results with the built-in functions (e.g. `mean()`, ` cov()`, etc.). Do they have the same value (5pts)?
     - mean of `carbon`
     - variance of `carbon`
     - standard deviation of `carbon`
     - covariance between `carbon` and `nitro`
     - correlation of `carbon` and `nitro`
 
-4. What's the correlation of `carbon` and `nitro`? Does the correlation vary by year?
+4. What's the correlation of `carbon` and `nitro`? Does the correlation vary by year (1pt)?
   
-5. Use `plot` to show the following visualizations of `carbon`
+5. Use `plot` to show the following visualizations of `carbon` (1pt):
    - histogram
    - pdf
    - empirical cdf
