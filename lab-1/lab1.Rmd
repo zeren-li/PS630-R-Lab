@@ -1,5 +1,5 @@
 ---
-title: "R Lab I"
+title: "R Lab 1"
 author: "Zeren Li"
 date: "9/2/2019"
 output:

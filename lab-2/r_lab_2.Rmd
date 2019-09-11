@@ -92,9 +92,7 @@ Single data frame functions / verbs:
 - * `summarise()`: reduce variables to values
 - * ... (many more)
 
-## Example Data
-
-We will demonstrate dplyr's functionality using the nycflights13 data.
+## CEO Data Analysis
 
 ###  Read CEO data
 
