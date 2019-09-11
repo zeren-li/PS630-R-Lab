@@ -1,0 +1,454 @@
+---
+title: "R Lab 2"
+author: "Zeren Li"
+date: "9/2/2019"
+output:
+  pdf_document: default
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls()) # remove all object
+```
+
+## Roadmap
+
+- `tidyverse` 
+- T-test
+- Visualization using `ggplot2`
+
+## Advanced Data Manipulation
+
+### `tidyverse`
+
+"The tidyverse is an opinionated collection of R packages designed for data science. All packages share an underlying design philosophy, grammar, and data structures."
+
+The core tidyverse includes the packages that you're likely to use in everyday data analyses. As of tidyverse 1.2.0, the following packages are included in the core tidyverse:
+
+```{r,include = FALSE}
+# use the following code to install tidyverse
+#install.packages("tidyverse") 
+#install.packages("haven") 
+library(haven)
+library(tidyverse)
+library(xtable)
+```
+
+## `magrittr`
+
+The magrittr package offers a set of operators which make your code more readable by:
+
+ - structuring sequences of data operations left-to-right (as opposed to from the inside and out),
+ - avoiding nested function calls,
+ - minimizing the need for local variables and function definitions, and
+ - making it easy to add steps anywhere in the sequence of operations.
+
+You can think about the following sequence of actions - find key, unlock car, start car, drive to school, park.
+
+Expressed as a set of nested functions in R pseudocode this would look like:
+
+```{r eval=FALSE}
+park(drive(start_car(find("keys")), to="campus"))
+```
+
+Writing it out using pipes give it a more natural (and easier to read) structure:
+
+```{r eval=FALSE}
+find("keys") %>%
+    start_car() %>%
+    drive(to = "campus") %>%
+    park()
+```
+
+## Approaches
+
+All of the following are fine, it comes down to personal preference:
+
+Nested:
+```{r, eval=FALSE}
+h( g( f(x), y=1), z=1 )
+```
+
+Piped:
+```{r, eval=FALSE}
+f(x) %>% g(y=1) %>% h(z=1)
+```
+
+## A Grammar of Data Manipulation
+
+dplyr is based on the concepts of functions as verbs that manipulate data frames.
+
+Single data frame functions / verbs:
+
+- * `filter()`: filter rows by condition(s)
+- * `slice()`: filter rows using index(es)
+- * `select()`: select columns by name
+- * `rename()`: rename variables
+- * `arrange()`: reorder rows
+- * `mutate()`: add new variables
+- * `distinct()`: filter for unique rows
+- * `sample_n()` / `sample_frac()`: randomly sample rows
+- * `summarise()`: reduce variables to values
+- * ... (many more)
+
+## Example Data
+
+We will demonstrate dplyr's functionality using the nycflights13 data.
+
+###  Read CEO data
+
+```{r}
+# set working directory
+setwd("~/PS630-R-Lab/lab-2") # change to your own working directory
+# read dta (Stata)
+ceo <- read_dta("./CEOSAL2.DTA") # read CEO dataset using haven
+```
+
+### `filter()` - CEOs aged over 50
+
+```{r}
+ceo %>% filter(age > 50)
+```
+
+### `filter()` - CEOs aged over 50 and earns 1000k+
+
+```{r}
+ceo %>% filter(age > 50, salary > 1000 )
+```
+### `slice()` - First 10 CEOs
+
+```{r}
+ceo %>% slice(1:10)
+```
+### `slice()` - Last 5 CEOs
+
+```{r}
+ceo %>% slice((n()-4):n())
+```
+
+
+### `select()` - Individual Columns
+
+```{r}
+ceo %>% select(salary, profmarg)
+```
+
+### `select()` - Exclude Columns
+
+```{r}
+ceo %>% select(-salary, -profmarg)
+ceo %>% select(-c(salary, profmarg))
+```
+
+### `select()` - Ranges
+
+```{r}
+ceo %>% select(salary:college)
+```
+
+### `select()` - Exclusion Ranges
+
+```{r}
+ceo %>% select(-c(salary:college))
+```
+
+## `rename()` - Change column names
+
+```{r}
+names(ceo)
+ceo_new <- ceo %>% rename(profit_margin = profmarg)
+names(ceo_new)
+```
+
+## `arrange()` - Sort data
+
+
+```{r}
+ceo %>% 
+  # filter if age is larger than 50
+  filter(age > 50) %>%
+  # sort by age and then salary
+  arrange(age,salary)  
+
+ceo %>% 
+  # filter if age is larger than 50
+  filter(age > 50) %>%
+  # sort by age (descend)
+  arrange(desc(age),salary)
+```
+
+### `mutate()` - Modify columns
+
+```{r}
+ceo %>% 
+  # add a new variable salary_l: log(salary)
+  mutate(salary_l = log(salary)) %>%
+  # select salary and salary_l
+  select(salary, salary_l, lsalary)
+```
+
+### `distinct()` - Find unique rows
+
+```{r}
+ceo %>% 
+  select(age, ceoten) %>% 
+  distinct() %>% 
+  arrange(age, ceoten)
+```
+
+### `sample_n()` sampling rows
+
+```{r}
+ceo %>% sample_n(100)
+```
+
+## `summarise()` - summarize data
+
+```{r}
+ceo %>% 
+  # provide summary statistic: # of obs, min, max
+  summarize(n = n(), 
+            mean = mean(salary,na.rm = T),
+            min = min(salary,na.rm = T), 
+            max = max(salary,na.rm = T))
+```
+
+### Tabulate Data by `grad`
+
+```{r}
+# creat your own contingency table
+ceo_tab = ceo %>% 
+  # define subgroups
+  group_by(grad) %>% 
+  # provide summary statistic: # of obs, min, max
+  summarize(n = n(), 
+            mean = mean(salary,na.rm = T),
+            sd = var(salary,na.rm = T) %>% sqrt(.),
+            min = min(salary,na.rm = T), 
+            max = max(salary,na.rm = T)) 
+ceo_tab 
+```
+
+### Using `xtable()` to export 
+
+```{r, results =  "asis"}
+xtable(ceo_tab)
+```
+
+
+## T-test
+
+### T-test using `t.test`
+```{r}
+t.test( profmarg ~ grad, data = ceo , var.equal=TRUE, paired=FALSE)
+```
+
+$$
+CI = \left[ \overline{X} -  t_{\alpha/2} S/\sqrt{n},\ \ \overline{X} + t_{\alpha/2} S/\sqrt{n} \right]
+$$
+
+```{r}
+# creat your own contingency table
+tab = ceo %>% 
+  # define subgroups
+  group_by(grad) %>% 
+  # provide summary statistic: # of obs, min, max
+  summarize(n = n(), 
+            mean = mean(profmarg,na.rm = T),
+            sd = var(profmarg,na.rm = T) %>% sqrt(.),
+            min = min(profmarg,na.rm = T), 
+            max = max(profmarg,na.rm = T))
+tab
+```
+
+$$
+t =  \frac{\bar X_t - \bar X_c}{\hat \sigma_{\bar{X_t}- \bar{X_c}}} \\ 
+$$
+where:
+$$
+\hat \sigma_{\bar{X_t}- \bar{X_c}} = \sqrt{\frac{\hat \sigma_{\bar{X_t}}}{n_t} + 
+\frac{\hat \sigma_{\bar{X_c}}}{n_c}
+}  \\
+$$
+
+```{r}
+# number of observations
+n_c <- tab$n[1]
+n_t <- tab$n[2]
+
+# mean 
+mean_c <- tab$mean[1]
+mean_t <- tab$mean[2]
+
+# standard deviation
+sd_c <- tab$sd[1]
+sd_t <- tab$sd[2]
+
+# compute sigma
+signma_tc <- sqrt(sd_c^2/n_c + sd_t^2/n_t)
+
+# compute t-statistic
+t_test <- (mean_t - mean_c)/ signma_tc
+
+t_test
+```
+
+### The degrees of freedom 
+
+R uses  Welch DoF, which is estimated as follows:
+
+$$
+\nu_{_W} = \frac{\left(\frac{s_t^2}{n_t}+\frac{s_c^2}{n_c}\right)^2}{\frac{s_t^4}{n_t^2\nu_t}+\frac{s_c^4}{n_c^2\nu_c}} 
+$$
+
+```{r}
+# numerator
+num = (sd_t^2/n_t + sd_c^2/n_c)^2
+
+# denominator
+den = sd_t^4/( (n_t^2) * (n_t - 1)) + sd_c^4/( (n_c^2) * (n_c - 1))
+
+# degrees of freedom
+dof = num/den
+dof
+```
+
+### P value
+
+```{r}
+
+2*pt(-abs(t_test),df=  dof ) # pt is the distribution function of t Distribution
+
+```
+
+
+
+
+
+## Data Visualization using `ggplot2`
+
+### Overview
+
+ggplot2 is a system for declaratively creating graphics, based on The Grammar of Graphics. You provide the data, tell ggplot2 how to map variables to aesthetics, what graphical primitives to use, and it takes care of the details.
+
+### Terminology
+
+A statistical graphic is a...
+
+- mapping of **data**
+- which may be **statistically transformed** (summarised, log-transformed, etc.)
+- to **aesthetic attributes** (color, size, xy-position, etc.)
+- using **geometric objects** (points, lines, bars, etc.)
+- and mapped onto a specific **facet** and **coordinate system**
+
+### Ask yourself these questions before using `ggplot()`
+
+- Which data is used as an input?
+- Are the variables statistically transformed before plotting?
+- What geometric objects are used to represent the data?
+- What variables are mapped onto which aesthetic attributes?
+- What type of scales are used to map data to aesthetics?
+
+
+### Anatomy of a ggplot
+
+```{r eval=FALSE}
+ggplot(
+  data = [dataframe], 
+  aes(
+    x = [var_x], y = [var_y], 
+    color = [var_for_color], 
+    fill = [var_for_fill], 
+    shape = [var_for_shape]
+  )
+) +
+  geom_[some_geom]([geom_arguments]) +
+  ... # other geometries
+  scale_[some_axis]_[some_scale]() +
+  facet_[some_facet]([formula]) +
+  ... # other options
+```
+
+
+### Scatterplot - CEO salary and sales
+
+### Distribution
+
+```{r fig.height=5, fig.width=5}
+ggplot(data = ceo, aes(x = lsalary))  +
+    geom_histogram() 
+
+ggplot(data = ceo, aes(x = lsalary))  +
+  geom_histogram(alpha = .5, fill = "blue")  
+```
+
+###  Distribution
+
+```{r fig.height=5, fig.width=5}
+ggplot(data = ceo, aes(x = lsalary))  +
+    geom_density(fill = "red", alpha = .5)  +
+    xlab("salary (logged)") +
+    ylab("") +
+    ggtitle("PDF of salary (logged)")
+
+ggsave("./hist.pdf")
+```
+
+
+```{r fig.height=5, fig.width=5}
+ggplot(data = ceo, aes(x = lsalary, y = lsales)) +
+  geom_point()
+
+
+ggplot(data = ceo, aes(x = lsalary, y = lsales)) +
+  # specify some features
+  geom_point(alpha = 0.5, color = "blue")
+```
+
+###  Bar plot 
+
+```{r}
+ggplot(data = ceo, aes(x = grad )) +
+  geom_bar(width = .3)
+```
+
+###  Bar plot 
+
+```{r}
+# compute mean of salary first
+ceo_grad_sum <- ceo %>%
+                mutate(grad = as.factor(grad)) %>%
+                    group_by(grad) %>%
+                    summarize(n = n())
+
+ggplot(data = ceo_grad_sum, aes(x = "", y = n, fill = grad, color = grad) )+
+geom_bar(width = 1, stat = "identity")+
+  coord_polar("y", start=0)
+```
+
+
+###  Line plot - CEO work experience and salary 
+
+```{r}
+
+
+# compute mean of salary first
+ceo_sum <- ceo %>%
+                group_by(ceoten) %>%
+                summarise(m_salary = mean(salary, na.rm = T))
+
+ggplot(data = ceo_sum, aes(x = ceoten, y = m_salary )) +
+  geom_line()
+```
+
+
+###  A bit fancier
+
+
+## Resource
+
+ggplot website: https://ggplot2.tidyverse.org/
+cheatsheet:https://github.com/rstudio/cheatsheets/blob/master/data-visualization-2.1.pdf
+top 50 visualization: http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
+ 

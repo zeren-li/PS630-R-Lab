@@ -58,8 +58,9 @@ library(readr) # read csv,txt files
 library(tidyverse) # powerful set of data science packages
 library(haven) # read stata files
 library(stargazer) # regression table
+
 # set working directory (set your own directory)
-setwd("./")
+setwd("~/PS630-R-Lab/lab-1/")
 
 # read RData (R)
 load("UNpop.RData")
@@ -72,13 +73,13 @@ UNpop <- read_csv("./UNpop.csv") # readr package
 
 ```{r}
 # read dta (Stata)
-ceo = read_dta("./CEOSAL2.DTA") # read CEO dataset using haven
+ceo <- read_dta("./CEOSAL2.DTA") # read CEO dataset using haven
 ```
 
 ### View Data
 
 ```{r view_data, eval=FALSE}
-View(data) # View data
+View(ceo) # View data
 ```
 
 ### Explore CEO data
@@ -94,7 +95,7 @@ ncol(ceo) # number of columns
 
 summary(ceo)  # summarize the dataset
 
-summary(ceo$salary)  # summarize the variable
+summary(ceo$salary)  # summarize variables
 
 length(ceo) # length of a dataset means # of variables
 
