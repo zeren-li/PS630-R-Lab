@@ -1,0 +1,136 @@
+---
+title: "lab3"
+author: "Zeren Li"
+date: "9/11/2019"
+output: html_document
+---
+
+## Roadmap
+
+- `ggplot`
+
+## Data Visualization using `ggplot2`
+
+### Overview
+
+ggplot2 is a system for declaratively creating graphics, based on The Grammar of Graphics. You provide the data, tell ggplot2 how to map variables to aesthetics, what graphical primitives to use, and it takes care of the details.
+
+### Terminology
+
+A statistical graphic is a...
+
+- mapping of **data**
+- which may be **statistically transformed** (summarised, log-transformed, etc.)
+- to **aesthetic attributes** (color, size, xy-position, etc.)
+- using **geometric objects** (points, lines, bars, etc.)
+- and mapped onto a specific **facet** and **coordinate system**
+
+### Ask yourself these questions before using `ggplot()`
+
+- Which data is used as an input?
+- Are the variables statistically transformed before plotting?
+- What geometric objects are used to represent the data?
+- What variables are mapped onto which aesthetic attributes?
+- What type of scales are used to map data to aesthetics?
+
+
+### Anatomy of a ggplot
+
+```{r eval=FALSE}
+ggplot(
+  data = [dataframe], 
+  aes(
+    x = [var_x], y = [var_y], 
+    color = [var_for_color], 
+    fill = [var_for_fill], 
+    shape = [var_for_shape]
+  )
+) +
+  geom_[some_geom]([geom_arguments]) +
+  ... # other geometries
+  scale_[some_axis]_[some_scale]() +
+  facet_[some_facet]([formula]) +
+  ... # other options
+```
+
+
+### Scatterplot - CEO salary and sales
+
+### Distribution
+
+```{r fig.height=5, fig.width=5}
+ggplot(data = ceo, aes(x = lsalary))  +
+    geom_histogram() 
+
+ggplot(data = ceo, aes(x = lsalary))  +
+  geom_histogram(alpha = .5, fill = "blue")  
+```
+
+###  Distribution
+
+```{r fig.height=5, fig.width=5}
+ggplot(data = ceo, aes(x = lsalary))  +
+    geom_density(fill = "red", alpha = .5)  +
+    xlab("salary (logged)") +
+    ylab("") +
+    ggtitle("PDF of salary (logged)")
+
+ggsave("./hist.pdf")
+```
+
+
+```{r fig.height=5, fig.width=5}
+ggplot(data = ceo, aes(x = lsalary, y = lsales)) +
+  geom_point()
+
+
+ggplot(data = ceo, aes(x = lsalary, y = lsales)) +
+  # specify some features
+  geom_point(alpha = 0.5, color = "blue")
+```
+
+###  Bar plot 
+
+```{r}
+ggplot(data = ceo, aes(x = grad )) +
+  geom_bar(width = .3)
+```
+
+###  Bar plot 
+
+```{r}
+# compute mean of salary first
+ceo_grad_sum <- ceo %>%
+                mutate(grad = as.factor(grad)) %>%
+                    group_by(grad) %>%
+                    summarize(n = n())
+
+ggplot(data = ceo_grad_sum, aes(x = "", y = n, fill = grad, color = grad) )+
+geom_bar(width = 1, stat = "identity")+
+  coord_polar("y", start=0)
+```
+
+
+###  Line plot - CEO work experience and salary 
+
+```{r}
+
+
+# compute mean of salary first
+ceo_sum <- ceo %>%
+                group_by(ceoten) %>%
+                summarise(m_salary = mean(salary, na.rm = T))
+
+ggplot(data = ceo_sum, aes(x = ceoten, y = m_salary )) +
+  geom_line()
+```
+
+
+###  A bit fancier
+
+
+## Resource
+
+ggplot website: https://ggplot2.tidyverse.org/
+cheatsheet:https://github.com/rstudio/cheatsheets/blob/master/data-visualization-2.1.pdf
+top 50 visualization: http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
