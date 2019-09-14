@@ -43,6 +43,6 @@ back for an interview. (2 points)
 
     - Double check your results using the built-in `t.test` command in R. Do you find differences in call back rates by race? 
 
-6. Again, manually perform a two-sample t-test comparing of the number of previous jobs (`ofjobs`) between applicants with black sounding names and white sounding names.  Double check your results using the built-in `t.test` command in R. Do you find differences in call back rates by race? (2 points)
+6. Again, manually perform a two-sample t-test comparing of the number of previous jobs (`ofjobs`) between applicants with black sounding names and white sounding names.  Double check your results using the built-in `t.test` command in R. Do you find differences in the number of previous jobs by race? (2 points)
 
 7. What do you conclude from the results of the Bertand and Mullainathan experiment? (1 point)
