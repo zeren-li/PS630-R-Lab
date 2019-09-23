@@ -1,13 +1,150 @@
 ---
 title: "lab3"
 author: "Zeren Li"
-date: "9/11/2019"
-output: html_document
+date: "9/18/2019"
+output: 
+   pdf_document: default
 ---
+
+```{r,include = FALSE}
+# use the following code to install tidyverse
+#install.packages("tidyverse") 
+#install.packages("haven") 
+#install.packages("xtable") 
+
+library(haven)
+library(tidyverse)
+library(stargazer)
+library(xtable)
+ceo <- read_dta("./CEOSAL2.DTA")
+```
+
 
 ## Roadmap
 
-- `ggplot`
+- OLS
+
+- `ggplot2`
+
+## OLS
+
+$$Y_i = \beta_0 + \beta_1 X_i + u_i$$
+
+
+- the index $i$ runs over the observations, $i=1,\dots,n$
+
+- $Y_i$ is the *dependent variable*, the *regressand*, or simply the *left-hand variable*
+
+- $X_i$ is the *independent variable*, the *regressor*, or simply the *right-hand variable*
+
+- $\beta_0$ is the *intercept* of the population regression line
+
+- $\beta_1$ is the *slope* of the population regression line
+
+- $u_i$ is the *error term*.
+
+## The OLS Estimator
+
+
+- The OLS estimator chooses the regression coefficients such that the estimated regression line is as "close" as possible to the observed data points. 
+
+- Closeness is measured by the sum of the squared errors made in predicting $Y$ given $X$. Let $b_0$ and $b_1$ be some estimators of $\beta_0$ and $\beta_1$. 
+
+- Then the sum of squared estimation errors can be expressed as 
+
+$$ \sum^n_{i = 1} (Y_i - b_0 - b_1 X_i)^2. $$
+
+##  OLS Estimator, Predicted Values, and Residuals
+
+\begin{align*}
+  \hat\beta_1 & = \frac{ \sum_{i = 1}^n (X_i - \overline{X})(Y_i - \overline{Y}) } { \sum_{i=1}^n (X_i - \overline{X})^2},  \\
+  \hat\beta_0 & =  \overline{Y} - \hat\beta_1 \overline{X}. 
+\end{align*}
+
+The OLS predicted values $\widehat{Y}_i$ and residuals $\hat{u}_i$ are
+
+\begin{align*}
+  \widehat{Y}_i & =  \hat\beta_0 + \hat\beta_1 X_i,\\
+  \\
+  \hat{u}_i & =  Y_i - \widehat{Y}_i
+\end{align*}
+
+The estimated intercept $\hat{\beta}_0$, the slope parameter $\hat{\beta}_1$ and the residuals $\left(\hat{u}_i\right)$ are computed from a sample of $n$ observations of $X_i$ and $Y_i$, $i$, $...$,  $n$. These are *estimates* of the unknown population intercept $\left(\beta_0 \right)$, slope $\left(\beta_1\right)$, and error term $(u_i)$.
+
+## Measures of Fit
+
+- How well the model describes the data? The observations are tightly clustered around the regression line
+
+- $R^2$, the *coefficient of determination*, is the fraction of the sample variance of $Y_i$ that is explained by $X_i$. Mathematically, the ratio of the explained sum of squares to the total sum of squares.
+
+- The *explained sum of squares* ($ESS$) is the sum of squared deviations of the predicted values
+
+- $\hat{Y_i}$, from the average of the $Y_i$
+The *total sum of squares* ($TSS$) is the sum of squared deviations of the $Y_i$ from their average. Thus we have 
+
+- The sum of squared residuals ($SSR$) is the sum of squared residuals, a measure for the errors made when predicting the $Y$ by $X$. 
+
+\begin{align*}
+  ESS & =  \sum_{i = 1}^n \left( \hat{Y_i} - \overline{Y} \right)^2   \\
+  TSS & =  \sum_{i = 1}^n \left( Y_i - \overline{Y} \right)^2  \\
+  SSR & = \sum_{i = 1}^n \left( Y_i - \hat{Y} \right)^2  \\
+  R^2 & = \frac{ESS}{TSS} \\
+\end{align*}
+
+
+## Returns to Performance
+
+```{r}
+ceo %>% 
+  select(salary, sales) %>%
+  summary()
+```
+
+```{r}
+# y as dependent variable
+y <- ceo$salary
+
+# x as independent variable
+x <- ceo$sales
+
+ # beta1
+ beta1 = sum((y - mean(y)) * (x - mean(x))) / sum (((x - mean(x))^2))
+ beta1
+ # beta0
+ beta0 <- mean(y) - beta1 * mean(x)
+ beta0
+ # predicted Y 
+ y_hat <- beta1 * x + beta0
+ head(y_hat)
+ # tss
+ tss <- sum( (y - mean(y))^2)
+ tss
+ # ESS
+ ess <- sum( (y_hat - mean(y))^2)
+ ess
+ # SSR
+ ssr <- sum( (y- y_hat)^2 )
+ ssr
+ # R^2
+ r_2 = ess/tss
+ r_2
+```
+
+```{r}
+m1 <- lm(salary ~ sales , ceo)
+
+summary(m1)
+```
+
+## Export regression table
+
+```{r, results='asis'}
+stargazer(m1, header = F,
+          title = "Effect of Sales on Salary", 
+          covariate.labels = c("Sales"), 
+          dep.var.labels = c("CEO's Salary"))
+```
+
 
 ## Data Visualization using `ggplot2`
 
@@ -28,11 +165,14 @@ A statistical graphic is a...
 ### Ask yourself these questions before using `ggplot()`
 
 - Which data is used as an input?
-- Are the variables statistically transformed before plotting?
-- What geometric objects are used to represent the data?
-- What variables are mapped onto which aesthetic attributes?
-- What type of scales are used to map data to aesthetics?
 
+- Are the variables statistically transformed before plotting?
+
+- What geometric objects are used to represent the data?
+
+- What variables are mapped onto which aesthetic attributes?
+
+- What type of scales are used to map data to aesthetics?
 
 ### Anatomy of a ggplot
 
@@ -53,40 +193,45 @@ ggplot(
   ... # other options
 ```
 
-
 ### Scatterplot - CEO salary and sales
 
-### Distribution
+### Histogram
 
 ```{r fig.height=5, fig.width=5}
-ggplot(data = ceo, aes(x = lsalary))  +
+ggplot(data = ceo, aes(x = salary))  +
     geom_histogram() 
 
-ggplot(data = ceo, aes(x = lsalary))  +
+ggplot(data = ceo, aes(x = salary))  +
   geom_histogram(alpha = .5, fill = "blue")  
 ```
 
 ###  Distribution
 
 ```{r fig.height=5, fig.width=5}
-ggplot(data = ceo, aes(x = lsalary))  +
-    geom_density(fill = "red", alpha = .5)  +
+figure1 <- ggplot(data = ceo, aes(x = salary))  +
+    geom_density(fill = "red")  +
     xlab("salary (logged)") +
     ylab("") +
-    ggtitle("PDF of salary (logged)")
+    ggtitle("PDF of salary")
 
-ggsave("./hist.pdf")
+figure1
+ggsave( "./hist.pdf")
 ```
 
+### Scatterplot
 
 ```{r fig.height=5, fig.width=5}
-ggplot(data = ceo, aes(x = lsalary, y = lsales)) +
+ggplot(data = ceo, aes(x = sales, y = salary)) +
   geom_point()
+```
 
+###  Box plot 
 
-ggplot(data = ceo, aes(x = lsalary, y = lsales)) +
-  # specify some features
-  geom_point(alpha = 0.5, color = "blue")
+```{r}
+ceo %>%
+  mutate(grad = as.factor(grad)) %>% 
+ggplot(., aes(x = grad, y = salary )) +
+    geom_boxplot()
 ```
 
 ###  Bar plot 
@@ -96,7 +241,7 @@ ggplot(data = ceo, aes(x = grad )) +
   geom_bar(width = .3)
 ```
 
-###  Bar plot 
+###  Pie chart 
 
 ```{r}
 # compute mean of salary first
@@ -106,16 +251,14 @@ ceo_grad_sum <- ceo %>%
                     summarize(n = n())
 
 ggplot(data = ceo_grad_sum, aes(x = "", y = n, fill = grad, color = grad) )+
-geom_bar(width = 1, stat = "identity")+
+geom_bar(width = 1, stat = "identity") +
   coord_polar("y", start=0)
 ```
 
 
-###  Line plot - CEO work experience and salary 
+###  Line chart 
 
 ```{r}
-
-
 # compute mean of salary first
 ceo_sum <- ceo %>%
                 group_by(ceoten) %>%
@@ -125,12 +268,36 @@ ggplot(data = ceo_sum, aes(x = ceoten, y = m_salary )) +
   geom_line()
 ```
 
+###  More...
 
-###  A bit fancier
+## Visualization of OLS
 
+```{r}
+outlier <- ceo %>% 
+  mutate(index = row_number() %>% as.factor() ) %>% 
+  select(salary, sales,index) %>% 
+  filter(salary > 4000 )
+
+ggplot(ceo, aes(x = sales, y = salary)) + 
+  # add points
+  geom_point(alpha = .5) + 
+  # highlight outlier(s)
+  geom_point(data = outlier, aes(x=sales,y=salary), 
+             color = 'red',size=3)  +
+  geom_text(data = outlier, aes(x=sales,y= (salary +200) 
+                                , label = index))  +
+  # add fitted line
+  geom_smooth(method = "lm") + 
+  # add fitted line by hand
+  geom_abline(slope = beta1, intercept = beta0, linetype = "dashed", color = "green") + 
+  # set theme
+  theme_bw()
+```
 
 ## Resource
 
-ggplot website: https://ggplot2.tidyverse.org/
-cheatsheet:https://github.com/rstudio/cheatsheets/blob/master/data-visualization-2.1.pdf
+ggplot2 website: https://ggplot2.tidyverse.org/
+
+cheatsheet: https://github.com/rstudio/cheatsheets/blob/master/data-visualization-2.1.pdf
+
 top 50 visualization: http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
