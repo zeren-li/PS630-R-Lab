@@ -284,14 +284,14 @@ ggplot(ceo, aes(x = sales, y = salary)) +
   # highlight outlier(s)
   geom_point(data = outlier, aes(x=sales,y=salary), 
              color = 'red',size=3)  +
-  geom_text(data = outlier, aes(x=sales,y= (salary +200) 
+  geom_text(data = outlier, aes(x=sales,y= salary + 200  
                                 , label = index))  +
   # add fitted line
   geom_smooth(method = "lm") + 
   # add fitted line by hand
   geom_abline(slope = beta1, intercept = beta0, linetype = "dashed", color = "green") + 
   # set theme
-  theme_bw()
+  theme_classic()
 ```
 
 ## Resource

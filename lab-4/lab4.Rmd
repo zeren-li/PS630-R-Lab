@@ -1,0 +1,258 @@
+---
+title: "lab 4"
+author: "Zeren Li"
+date: "9/18/2019"
+output: 
+   pdf_document: default
+---
+
+```{r,include = FALSE}
+# use the following code to install tidyverse
+#install.packages("tidyverse") 
+#install.packages("haven") 
+#install.packages("xtable") 
+
+library(haven)
+library(tidyverse)
+library(stargazer)
+library(xtable)
+library(scales)
+
+ceo <- read_dta("./CEOSAL2.DTA")
+```
+
+Roadmap
+===========
+
+- Compute se, t-stat, and confidence interval
+- Heteroskedasticity
+- Regression Diagnostics
+- Non-linearity
+  - Logged transformation regression
+  - Bivariate quadratic equation
+
+
+Standard Error of Regression
+==============================
+
+($SER$) is an estimator of the standard deviation of the residuals $\hat{u}_i$. As such it measures the magnitude of a typical deviation from the regression line, i.e., the magnitude of a typical residual.
+
+$$ SER = s_{\hat{u}} = \sqrt{s_{\hat{u}}^2} \ \ \ \text{where} \ \ \ s_{\hat{u} }^2 = \frac{1}{n-2} \sum_{i = 1}^n \hat{u}^2_i = \frac{SSR}{n - 2} $$
+
+As $TSS = ESS + SSR$
+
+$$ R^2 = 1- \frac{SSR}{TSS} $$  
+
+## Assumptions of OLS
+
+Assumption 1: The Error Term has Conditional Mean of Zero 
+
+Assumption 2: Independently and Identically Distributed Data 
+
+Assumption 3: Large Outliers are Unlikely 
+
+## The Sampling Distribution of the OLS Estimator
+
+ - As $\hat{\beta}_0$ and $\hat{\beta}_1$ are computed from a sample, estimators themselves are random variables with a probability distribution --- the so-called sampling distribution of the estimators --- which describes the values they could take on over different samples.
+
+- Sampling distribution can be complicated when the sample size is small and generally changes with the number of observations, $n$
+
+ - When Sample is sufficiently large, by the central limit theorem the *joint* sampling distribution of the estimators is well approximated by the bivariate normal distribution 
+
+$$ E(\hat{\beta}_0) = \beta_0 \ \ \text{and} \ \  E(\hat{\beta}_1) = \beta_1,$$
+
+## Hypothesis Tests 
+
+- Testing Hypotheses regarding regression coefficients
+
+- Confidence intervals for regression coefficients
+
+## Testing Two-Sided Hypotheses Concerning the Slope Coefficient
+
+A general $t$-statistic has the form
+$$ t = \frac{\text{estimated value} - \text{hypothesized value}}{\text{standard error of the estimator}}.$$
+
+
+## Testing Two-Sided Hypotheses Concerning the Slope Coefficient
+
+For testing the hypothesis $H_0: \beta_1 = \beta_{1,0}$, we need to perform the following steps:
+
+1. Compute the standard error of $\hat{\beta}_1$, $SE(\hat{\beta}_1)$
+
+\[ SE(\hat{\beta}_1) = \sqrt{ \hat{\sigma}^2_{\hat{\beta}_1} } \\ , \\ 
+  \hat{\sigma}^2_{\hat{\beta}_1} = \frac{1}{n} \times \frac{\frac{1}{n-2} \sum_{i=1}^n (X_i - \overline{X})^2 \hat{u_i}^2 }{ \left[ \frac{1}{n} \sum_{i=1}^n (X_i - \overline{X})^2 \right]^2}.
+\]
+
+2. Compute the $t$-statistic
+
+\[ t = \frac{\hat{\beta}_1 - \beta_{1,0}}{ SE(\hat{\beta}_1) }. \]
+
+3. Given a two sided alternative ($H_1:\beta_1 \neq \beta_{1,0}$) we reject at the $5\%$ level if $|t^{act}| > 1.96$ or, equivalently, if the $p$-value is less than $0.05$.<br>  
+Recall the definition of the $p$-value:  
+
+  \begin{align*}
+    p \text{-value} =& \, \text{Pr}_{H_0} \left[ \left| \frac{ \hat{\beta}_1 - \beta_{1,0} }{ SE(\hat{\beta}_1) } \right| > \left|        \frac{ \hat{\beta}_1^{act} - \beta_{1,0} }{ SE(\hat{\beta}_1) } \right| \right] \\
+    =& \, \text{Pr}_{H_0} (|t| > |t^{act}|) \\
+    \approx& \, 2 \cdot \Phi(-|t^{act}|)
+  \end{align*}  
+
+
+The last transformation is due to the normal approximation for large samples.
+
+
+Example: Returns to Performance
+=================================
+
+```{r}
+# estimate the model
+m1 <- lm(salary ~ sales, data = ceo)     
+
+summary(m1)
+```
+
+# T-test for linear regression
+
+We use T test to test our hypothesis:
+
+$$\frac{\hat \beta_1}{\sigma_{\hat\beta}} \sim	 T_(n-k-1)$$ 
+
+where $k$ is the number of paramter, $n$ is the number of observation
+
+For bivariate $n-k-1 = n-2$
+
+```{r}
+# y as dependent variable
+y <- ceo$salary
+
+# x as independent variable
+x <- ceo$sales
+
+n <- length(ceo$salary)
+
+ # beta1
+ beta1 = sum((y - mean(y)) * (x - mean(x))) / sum (((x - mean(x))^2))
+ beta1
+ # beta0
+ beta0 <- mean(y) - beta1 * mean(x)
+ beta0
+ 
+ # predicted Y 
+ y_hat <- beta1 * x + beta0
+ head(y_hat)
+
+ # se
+
+ 
+```
+
+
+
+Confidence Intervals
+=====================
+
+A $95\%$ confidence interval for $\beta_i$ has two equivalent definitions:
+
+- The interval has a probability of $95\%$ to contain the true value of $\beta_i$. So in $95\%$ of all samples that could be drawn, the confidence interval will cover the true value of $\beta_i$.
+
+
+
+##  Heteroskedasticity and Homoskedasticity
+
+All inference made in the previous discussion relies on the assumption that the error variance does not vary as regressor values change. But this will often not be the case in empirical applications
+
+- The error term of our regression model is homoskedastic if the variance of the conditional distribution of $u_i$ given $X_i$, $Var(u_i|X_i=x)$, is constant *for all* observations in our sample:
+\[ \text{Var}(u_i|X_i=x) = \sigma^2 \ \forall \ i=1,\dots,n. \]
+
+- If instead there is dependence of the conditional variance of $u_i$ on $X_i$, the error term is said to be heteroskedastic. We then write
+\[ \text{Var}(u_i|X_i=x) = \sigma_i^2 \ \forall \ i=1,\dots,n. \]
+
+- Homoskedasticity is a *special case* of heteroskedasticity.
+
+
+## A better understanding of heteroskedasticity
+
+$$ salary_i = \beta_0 + \beta_1 \cdot sales_i + u_i. $$
+
+- On average, CEO with larger sales earn more than their peers with smaller sales -> an upward sloping regression line. 
+- Also, it seems plausible that earnings of better educated workers have a higher dispersion than those of low-skilled workers
+- Solid education is not a guarantee for a high salary so even highly qualified workers take on low-income jobs
+    
+
+```{r}
+# plot observations and add the regression line
+ggplot(ceo, aes(x = sales, y = age )) +
+  geom_point() 
+  
+```
+
+## Gauss-Markov theorem
+
+The best (in the sense of smallest variance) linear conditionally unbiased estimator (BLUE) in this setting.
+ 
+- Estimators of $\beta_1$ that are linear functions of the $Y_1, \dots, Y_n$ and that are unbiased conditionally on the regressor $X_1, \dots, X_n$ can be written as \[ \overset{\sim}{\beta}_1 = \sum_{i=1}^n a_i Y_i \] where the $a_i$ are weights that are allowed to depend on the $X_i$ but *not* on the $Y_i$. 
+
+- We already know that $\overset{\sim}{\beta}_1$ has a sampling distribution: $\overset{\sim}{\beta}_1$ is a linear function of the $Y_i$ which are random variables. If now \[ E(\overset{\sim}{\beta}_1 | X_1, \dots, X_n) = \beta_1, \] $\overset{\sim}{\beta}_1$ is a linear unbiased estimator of $\beta_1$, conditionally on the $X_1, \dots, X_n$.
+
+- We may ask if $\overset{\sim}{\beta}_1$ is also the *best* estimator in this class, i.e., the most efficient one of all linear conditionally unbiased estimators where "most efficient" means smallest variance. The weights $a_i$ play an important role here and it turns out that OLS uses just the right weights to have the BLUE property. 
+
+## Residual Analaysis
+
+1. Residuals vs Fitted: shows if residuals have non-linear patterns
+
+2. Normal Q-Q: shows if residuals are normally distributed. 
+
+3.Scale-Location: shows if residuals are spread equally along with the ranges of predictors
+
+4. Residuals vs Leverage: helps us to find outliers
+
+```{r}
+par(mfrow=c(2,2))
+plot(m1, ask=F)
+```
+
+Logged Transformation
+=======================
+
+level-level  $y = \beta_1 x + \beta_0$ a 1 unit change in x results in a $\beta_1$ unit change in y
+
+level-log  $y = \beta_1 ln(x) + \beta_0$ a $1\%$ change in x results in a $\beta_1/100$ unit change in y
+
+level-log  $ln(y) = \beta_1 x + \beta_0$ a 1 unit change in x results in a $\beta_1*100$ unit change in y
+
+log-log  $ln(y) = \beta_1 ln(x) + \beta_0$ a $1\%$ change in x results in a $\beta_1\%$  change in y
+
+```{r echo=FALSE}
+# visualize the distribution of salary and sales
+ggplot(ceo, aes(x = salary)) +
+  geom_density(fill = "red", alpha = .5)  
+
+ggplot(ceo, aes(x = sales)) +
+  geom_density(fill = "red", alpha = .5)  
+
+# add logged variables
+ceo_logged <- ceo %>% 
+  mutate(l_ceo = log(ceo) ,
+         l_salary = log(salary))
+  
+# baseline model
+m1 <- lm(salary ~ sales, ceo)
+m1
+# model with logged independent variable(s)
+m2 <- lm(salary ~ log(sales), ceo)
+
+# model with logged depdent variable
+m3 <- lm(log(salary) ~ sales, ceo)
+
+# model with logged depdent variable 
+# and logged independent variable(s)
+m3 <- lm(log(salary) ~ log(sales), ceo)
+
+
+# plot observations and add the regression line
+ggplot(ceo, aes(x = log(sales), y = log(salary) )) +
+  geom_point() 
+```
+
+
+
+
