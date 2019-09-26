@@ -18,36 +18,29 @@ library(tidyverse)
 library(stargazer)
 library(xtable)
 library(gridExtra)
-ceo <- read_dta("./CEOSAL2.DTA")  
 ```
 
 Roadmap
 ===========
 
-- Compute se, t-stat, and confidence interval
+- Hypothesis Tests: Compute se, t-stat, and confidence interval
 - Heteroskedasticity
 - Regression Diagnostics
 - Non-linearity
-  - Logged transformation regression
-  - Bivariate quadratic equation
+  - Logged transformation
+  - Bivariate quadratic regression
 
-## Assumptions of OLS
+## Gauss-Markov Assumptions
 
-Assumption 1: The Error Term has Conditional Mean of Zero 
+$$ Y_i = \beta_0 + \beta_1  X_i + u_i$$
 
-Assumption 2: Independently and Identically Distributed Data 
-
-Assumption 3: Large Outliers are Unlikely 
-
-## The Sampling Distribution of the OLS Estimator
-
- - As $\hat{\beta}_0$ and $\hat{\beta}_1$ are computed from a sample, estimators themselves are random variables with a probability distribution --- the so-called sampling distribution of the estimators --- which describes the values they could take on over different samples.
-
-- Sampling distribution can be complicated when the sample size is small and generally changes with the number of observations, $n$
-
- - When Sample is sufficiently large, by the central limit theorem the *joint* sampling distribution of the estimators is well approximated by the bivariate normal distribution 
-
-$$ E(\hat{\beta}_0) = \beta_0 \ \ \text{and} \ \  E(\hat{\beta}_1) = \beta_1,$$
+1. Linear in parameters: the dependent variable is a linear function of indepdent variable(s)
+2. Random sampling of observations: observations are randomly drawn from the above population function
+3. Sample variation in explanatory variables: $X_i$ are not the same value
+4. Zero conditional mean
+    $$E(u|x) = 0$$
+5. Homoskedasticity
+ $$Var(u|x) = \sigma^2$$
 
 ## Hypothesis Tests 
 
@@ -94,6 +87,9 @@ Example: Returns to Sales Performance
 Compute T-statistic:
 
 ```{r}
+# load data
+ceo <- read_dta("./CEOSAL2.DTA")  
+
 # y as dependent variable
 y <- ceo$salary
 
@@ -173,7 +169,7 @@ confint(m1)
 ```
 
 
-##  Heteroskedasticity and Homoskedasticity
+## Heteroskedasticity and Homoskedasticity
 
 All inference made in the previous discussion relies on the assumption that the error variance does not vary as regressor values change. But this will often not be the case in empirical applications.
 
