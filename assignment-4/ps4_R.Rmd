@@ -1,0 +1,33 @@
+---
+title: "Problem Set 4"
+author: "Your name"
+output:
+  pdf_document: default
+---
+
+This week we will be working with Wooldridge's dataset (`VOTE1.dta`).
+
+##  Quadratic regression (4 points)
+
+1. Imagine that you are a campaign adviser to an incumbent candidate.  In the course of your work, you come across a theory that there are diminishing marginal returns to campaign expenditures for incumbents. Using only two variables _VoteA_ and _expendA_, test this theory in a regression. (1 point)
+
+2. Interpret the regression results. (1 point)
+
+3. Draw a scatter plot and fitted curve, which depict the relationship expressed in question 1. (1 point)
+
+4. If diminishing marginal returns exist, at what point do we begin to see a negative relationship between spending and the incumbent's vote share?  (1 point)
+
+
+##  Calculate standard errors + Level-log regression (3 points)
+
+5. Regress _voteA_ on _lexpendA_ and interpret the regression results. (1 point)
+
+6. Following the instruction in lab 4, calculate the standard error of the coefficient on _lexpendA_ and the corresponding t-statistic, p-value, and 95-percent confidence interval. Compare these results with the output of the built-in function `lm()`. (2 points)
+
+## Heteroskedasticity and Outliers (3 points)
+
+7. Regress _voteA_ on _expendA_ and interpret the regression results. Using `plot()` to run diagnostics. Explain your findings of each plot. (2points) 
+
+Then, answer the following questions: Do you conclude that there is heteroskedasticity in this regression? (1 point)
+
+

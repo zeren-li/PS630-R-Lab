@@ -7,18 +7,18 @@ output:
 ---
 
 ```{r,include = FALSE}
+knitr::opts_chunk$set( warning = FALSE)
 # use the following code to install tidyverse
 #install.packages("tidyverse") 
 #install.packages("haven") 
 #install.packages("xtable") 
-
+#install.packages("gridExtra") 
 library(haven)
 library(tidyverse)
 library(stargazer)
 library(xtable)
-library(scales)
-
-ceo <- read_dta("./CEOSAL2.DTA")
+library(gridExtra)
+ceo <- read_dta("./CEOSAL2.DTA")  
 ```
 
 Roadmap
@@ -30,18 +30,6 @@ Roadmap
 - Non-linearity
   - Logged transformation regression
   - Bivariate quadratic equation
-
-
-Standard Error of Regression
-==============================
-
-($SER$) is an estimator of the standard deviation of the residuals $\hat{u}_i$. As such it measures the magnitude of a typical deviation from the regression line, i.e., the magnitude of a typical residual.
-
-$$ SER = s_{\hat{u}} = \sqrt{s_{\hat{u}}^2} \ \ \ \text{where} \ \ \ s_{\hat{u} }^2 = \frac{1}{n-2} \sum_{i = 1}^n \hat{u}^2_i = \frac{SSR}{n - 2} $$
-
-As $TSS = ESS + SSR$
-
-$$ R^2 = 1- \frac{SSR}{TSS} $$  
 
 ## Assumptions of OLS
 
@@ -67,27 +55,27 @@ $$ E(\hat{\beta}_0) = \beta_0 \ \ \text{and} \ \  E(\hat{\beta}_1) = \beta_1,$$
 
 - Confidence intervals for regression coefficients
 
-## Testing Two-Sided Hypotheses Concerning the Slope Coefficient
-
 A general $t$-statistic has the form
 $$ t = \frac{\text{estimated value} - \text{hypothesized value}}{\text{standard error of the estimator}}.$$
 
 
-## Testing Two-Sided Hypotheses Concerning the Slope Coefficient
-
 For testing the hypothesis $H_0: \beta_1 = \beta_{1,0}$, we need to perform the following steps:
 
-1. Compute the standard error of $\hat{\beta}_1$, $SE(\hat{\beta}_1)$
+1. Compute the standard error of $\hat{\beta}_1$, $sigma(\hat{\beta}_1)$
 
-\[ SE(\hat{\beta}_1) = \sqrt{ \hat{\sigma}^2_{\hat{\beta}_1} } \\ , \\ 
-  \hat{\sigma}^2_{\hat{\beta}_1} = \frac{1}{n} \times \frac{\frac{1}{n-2} \sum_{i=1}^n (X_i - \overline{X})^2 \hat{u_i}^2 }{ \left[ \frac{1}{n} \sum_{i=1}^n (X_i - \overline{X})^2 \right]^2}.
+\[\hat{\sigma}_{\hat{\beta}_1} = \sqrt{  \frac{\frac{1}{n-2} \sum_{i=1}^n (Y_i - \overline{Y})^2 }{  \sum_{i=1}^n (X_i - \overline{X})^2 }}
 \]
 
 2. Compute the $t$-statistic
 
-\[ t = \frac{\hat{\beta}_1 - \beta_{1,0}}{ SE(\hat{\beta}_1) }. \]
+\[  \frac{\hat{\beta}_1 - \beta_{1,0}}{ \sigma(\hat{\beta}_1) } \sim  t_{n-k-1}. \]
+
+where $k$ is the number of paramter, $n$ is the number of observation.
+
+For bivariate regression, $n-k-1 = n-2$.
 
 3. Given a two sided alternative ($H_1:\beta_1 \neq \beta_{1,0}$) we reject at the $5\%$ level if $|t^{act}| > 1.96$ or, equivalently, if the $p$-value is less than $0.05$.<br>  
+
 Recall the definition of the $p$-value:  
 
   \begin{align*}
@@ -100,25 +88,10 @@ Recall the definition of the $p$-value:
 The last transformation is due to the normal approximation for large samples.
 
 
-Example: Returns to Performance
+Example: Returns to Sales Performance
 =================================
 
-```{r}
-# estimate the model
-m1 <- lm(salary ~ sales, data = ceo)     
-
-summary(m1)
-```
-
-# T-test for linear regression
-
-We use T test to test our hypothesis:
-
-$$\frac{\hat \beta_1}{\sigma_{\hat\beta}} \sim	 T_(n-k-1)$$ 
-
-where $k$ is the number of paramter, $n$ is the number of observation
-
-For bivariate $n-k-1 = n-2$
+Compute T-statistic:
 
 ```{r}
 # y as dependent variable
@@ -126,39 +99,83 @@ y <- ceo$salary
 
 # x as independent variable
 x <- ceo$sales
-
 n <- length(ceo$salary)
 
- # beta1
- beta1 = sum((y - mean(y)) * (x - mean(x))) / sum (((x - mean(x))^2))
- beta1
- # beta0
- beta0 <- mean(y) - beta1 * mean(x)
- beta0
+# beta1
+beta1 = sum((y - mean(y)) * (x - mean(x))) / sum (((x - mean(x))^2))
+beta1
+# beta0
+beta0 <- mean(y) - beta1 * mean(x)
+beta0
  
- # predicted Y 
- y_hat <- beta1 * x + beta0
- head(y_hat)
+# predicted Y 
+y_hat <- beta1 * x + beta0
+head(y_hat)
 
- # se
+# predicted u
+u_hat = y - y_hat
 
- 
+# signma beta 1
+denom = 1/(n-2) * sum(u_hat^2) 
+num =  sum( (x- mean(x))^2 )
+
+sigma_beta1 = sqrt(denom/num)
+
+# t statistic
+t_test = (beta1 - 0)/sigma_beta1
+t_test
 ```
 
+Compute P-value:
 
+```{r}
+# pt() is the distribution function of t distribution
+2*pt(-abs(t_test), df = n-2) 
+```
+
+Double-check with build-in function:
+
+```{r}
+# estimate the model
+m1 <- lm(salary ~ sales, data = ceo)     
+
+# summary of regression
+sum = summary(m1)
+sum
+```
+
+```{r, results= "asis"}
+# Estimate, SE, t value, and P value of coefficients
+options(xtable.comment = FALSE)
+xtable(sum$coefficients)
+```
 
 Confidence Intervals
 =====================
 
-A $95\%$ confidence interval for $\beta_i$ has two equivalent definitions:
+The interval has a probability of $95\%$ to contain the true value of $\beta_i$. So in $95\%$ of all samples that could be drawn, the confidence interval will cover the true value of $\beta_i$.
 
-- The interval has a probability of $95\%$ to contain the true value of $\beta_i$. So in $95\%$ of all samples that could be drawn, the confidence interval will cover the true value of $\beta_i$.
+$$
+CI_{\beta1} = (\bar \beta_1 - t^* * \hat \sigma_{\beta_1}, \bar X + t^* * \hat \sigma_{\beta_1})
+$$
 
+```{r}
+dof = n-2
+critical_t <- qt(0.05/2, dof)
+
+beta1 - critical_t*sigma_beta1
+beta1 + critical_t*sigma_beta1
+```
+
+```{r}
+# coefficient
+confint(m1)
+```
 
 
 ##  Heteroskedasticity and Homoskedasticity
 
-All inference made in the previous discussion relies on the assumption that the error variance does not vary as regressor values change. But this will often not be the case in empirical applications
+All inference made in the previous discussion relies on the assumption that the error variance does not vary as regressor values change. But this will often not be the case in empirical applications.
 
 - The error term of our regression model is homoskedastic if the variance of the conditional distribution of $u_i$ given $X_i$, $Var(u_i|X_i=x)$, is constant *for all* observations in our sample:
 \[ \text{Var}(u_i|X_i=x) = \sigma^2 \ \forall \ i=1,\dots,n. \]
@@ -168,90 +185,174 @@ All inference made in the previous discussion relies on the assumption that the 
 
 - Homoskedasticity is a *special case* of heteroskedasticity.
 
-
 ## A better understanding of heteroskedasticity
 
 $$ salary_i = \beta_0 + \beta_1 \cdot sales_i + u_i. $$
 
-- On average, CEO with larger sales earn more than their peers with smaller sales -> an upward sloping regression line. 
-- Also, it seems plausible that earnings of better educated workers have a higher dispersion than those of low-skilled workers
-- Solid education is not a guarantee for a high salary so even highly qualified workers take on low-income jobs
+- On average, CEO with higher sales earn more than their peers with lower sales -> an upward sloping regression line. 
+
+- It seems plausible that earnings of CEO with lower sales have a higher dispersion than those of CEO with higher sales. 
+
+- Some other factors matter for salary (relations with the board, Charisma, control of debt, etc.)
     
 
 ```{r}
+ceo %>%
+  mutate(sales_scale = round(sales/1000) %>% as.factor()) %>%
 # plot observations and add the regression line
-ggplot(ceo, aes(x = sales, y = age )) +
-  geom_point() 
-  
+  ggplot(.) +
+  geom_boxplot( aes(x = sales_scale , y = salary )) +
+  xlab("sales (billion USD)") +
+  ylab("salary(thousand USD)")
 ```
-
-## Gauss-Markov theorem
-
-The best (in the sense of smallest variance) linear conditionally unbiased estimator (BLUE) in this setting.
- 
-- Estimators of $\beta_1$ that are linear functions of the $Y_1, \dots, Y_n$ and that are unbiased conditionally on the regressor $X_1, \dots, X_n$ can be written as \[ \overset{\sim}{\beta}_1 = \sum_{i=1}^n a_i Y_i \] where the $a_i$ are weights that are allowed to depend on the $X_i$ but *not* on the $Y_i$. 
-
-- We already know that $\overset{\sim}{\beta}_1$ has a sampling distribution: $\overset{\sim}{\beta}_1$ is a linear function of the $Y_i$ which are random variables. If now \[ E(\overset{\sim}{\beta}_1 | X_1, \dots, X_n) = \beta_1, \] $\overset{\sim}{\beta}_1$ is a linear unbiased estimator of $\beta_1$, conditionally on the $X_1, \dots, X_n$.
-
-- We may ask if $\overset{\sim}{\beta}_1$ is also the *best* estimator in this class, i.e., the most efficient one of all linear conditionally unbiased estimators where "most efficient" means smallest variance. The weights $a_i$ play an important role here and it turns out that OLS uses just the right weights to have the BLUE property. 
 
 ## Residual Analaysis
 
-1. Residuals vs Fitted: shows if residuals have non-linear patterns
+1. Residuals vs Fitted: shows if residuals have non-linear patterns.
+
+The first plots the residuals versus the fitted values. We are looking to see whether the residuals are spread uniformly across the line  $y=0$. If there is a U-shape, then that is evidence that there may be a variable “lurking” that we have not taken into account. It could be a variable that is related to the data that we did not collect, or it could be that our model should include a quadratic term.
 
 2. Normal Q-Q: shows if residuals are normally distributed. 
 
-3.Scale-Location: shows if residuals are spread equally along with the ranges of predictors
+Ideally, the points would fall more or less along the line given in the plot. It takes some experience to know what is a reasonable departure from the line and what would indicate a problem. 
 
-4. Residuals vs Leverage: helps us to find outliers
+3. Scale-Location: shows if residuals are spread equally along with the ranges of predictors.
 
+This is a plot that helps us to see whether the variance is constant across the fitted values. Many times, the variance will increase with the fitted value, in which case we would see an upward trend in this plot. We are looking to see that the line is more or less flat.
+
+4. Residuals vs Leverage: helps us to find outliers.
+
+Outliers are points that fit the model worse than the rest of the data. Outliers with x-coordinates in the middle of the data tend to have less of an impact on the final model than outliers toward the edge of the x-coordinates. Data that falls outside the red dashed lines are high-leverage outliers, meaning that they (may) have a large effect on the final model. You should consider removing the data and re-running in order to see how big the effect is. Or you could use robust methods (We may discuss this later this semster).
+ 
 ```{r}
 par(mfrow=c(2,2))
 plot(m1, ask=F)
 ```
 
-Logged Transformation
+Log Transformation
 =======================
 
-level-level  $y = \beta_1 x + \beta_0$ a 1 unit change in x results in a $\beta_1$ unit change in y
+**level-level**, $y = \beta_1 x + \beta_0$, a 1 unit change in x results in a $\beta_1$ unit change in y
 
-level-log  $y = \beta_1 ln(x) + \beta_0$ a $1\%$ change in x results in a $\beta_1/100$ unit change in y
+**level-log**, $y = \beta_1 ln(x) + \beta_0$, a $1\%$ change in x results in a $\beta_1/100$ unit change in y
 
-level-log  $ln(y) = \beta_1 x + \beta_0$ a 1 unit change in x results in a $\beta_1*100$ unit change in y
+**log-level**, $ln(y) = \beta_1 x + \beta_0$, a 1 unit change in x results in a $\beta_1*100$ unit change in y
 
-log-log  $ln(y) = \beta_1 ln(x) + \beta_0$ a $1\%$ change in x results in a $\beta_1\%$  change in y
+**log-log**,  $ln(y) = \beta_1 ln(x) + \beta_0$, a $1\%$ change in x results in a $\beta_1\%$  change in y
 
 ```{r echo=FALSE}
-# visualize the distribution of salary and sales
-ggplot(ceo, aes(x = salary)) +
-  geom_density(fill = "red", alpha = .5)  
-
-ggplot(ceo, aes(x = sales)) +
-  geom_density(fill = "red", alpha = .5)  
-
 # add logged variables
 ceo_logged <- ceo %>% 
-  mutate(l_ceo = log(ceo) ,
+  mutate(l_sales = log(sales) ,
          l_salary = log(salary))
-  
+
+# visualize the distribution of salary and sales
+
+p1 = ggplot(ceo_logged, aes(x = salary)) +
+    # histogram with density instead of count on y-axis
+    geom_histogram(aes(y=..density..),    
+                   colour="black", fill="white") +
+  # overlay with transparent density plot
+    geom_density(alpha=.2, fill="red")  
+
+p2 = ggplot(ceo_logged, aes(x = sales)) +
+  # histogram with density instead of count on y-axis
+  geom_histogram(aes(y=..density..),    
+                   colour="black", fill="white") +
+  # overlay with transparent density plot
+    geom_density(alpha=.2, fill="red") 
+
+p3 = ggplot(ceo_logged, aes(x = l_salary)) +
+    # histogram with density instead of count on y-axis
+    geom_histogram(aes(y=..density..),    
+                   colour="black", fill="white") +
+  # overlay with transparent density plot
+    geom_density(alpha=.2, fill="green")  
+
+p4 = ggplot(ceo_logged, aes(x = l_sales)) +
+  # histogram with density instead of count on y-axis
+  geom_histogram(aes(y=..density..),    
+                   colour="black", fill="white") +
+  # overlay with transparent density plot
+    geom_density(alpha=.2, fill="green")  
+
+
+grid.arrange(p1, p2,p3,p4, nrow = 2)
+
+```
+
+```{r}
 # baseline model
-m1 <- lm(salary ~ sales, ceo)
-m1
+m1 <- lm(salary ~ sales, ceo_logged)
+
 # model with logged independent variable(s)
-m2 <- lm(salary ~ log(sales), ceo)
+m2 <- lm(salary ~ l_sales, ceo_logged)
 
 # model with logged depdent variable
-m3 <- lm(log(salary) ~ sales, ceo)
+m3 <- lm(l_salary ~ sales, ceo_logged)
 
 # model with logged depdent variable 
 # and logged independent variable(s)
-m3 <- lm(log(salary) ~ log(sales), ceo)
+m4 <- lm(l_salary ~ l_sales, ceo_logged)
+
+```
+
+```{r, result = "asis"}
+# export regression table
+stargazer(m1,m2,m3,m4, header = F, type = "text")
+```
 
 
+
+```{r}
 # plot observations and add the regression line
 ggplot(ceo, aes(x = log(sales), y = log(salary) )) +
-  geom_point() 
+  geom_point() +
+  stat_smooth(method = "lm", formula = y ~ x )
 ```
+
+## Quadratic Regression
+
+$$ salary_i = \beta_0 + \beta_1 \cdot sales_i +  \beta_2 \cdot sales_i^2  + u_i. $$
+
+
+```{r}
+q_ceo <- ceo %>%
+ mutate(
+   # transform to billion USD
+   sales = sales/1000,
+   sales_2 = sales^2)
+
+# fit a quadratic regression
+q_m <- lm(salary ~ sales_2 + sales, q_ceo  )
+
+# summary of regression
+summary(q_m)
+
+# coefficients
+coef(q_m)
+
+# predicted value of y
+# by hand
+y_predict_byhand <- coef(q_m)[1] + coef(q_m)[2] * q_ceo$sales_2 + coef(q_m)[3] * q_ceo$sales
+
+# use predict()
+y_predict <- predict(q_m)
+
+# double check two outputs 
+data.frame(y_predict_byhand, y_predict) %>% head()
+
+```
+
+$$ salary_i = 674.14 + 67.70 \cdot sales_i  -0.96 \cdot sales_i^2  + u_i. $$
+
+```{r}
+ggplot(q_ceo, aes(x = sales, y = salary)) +
+  geom_point() +
+  stat_smooth(method = "lm", formula = y ~ x + I(x^2), size = 1) +
+  xlab("sales (billion USD)")
+```
+
 
 
 
