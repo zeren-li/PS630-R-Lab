@@ -1,7 +1,7 @@
 ---
 title: "lab 4"
 author: "Zeren Li"
-date: "9/18/2019"
+date: "9/26/2019"
 output: 
    pdf_document: default
 ---
@@ -12,7 +12,7 @@ output:
 #install.packages("haven") 
 #install.packages("xtable") 
 #install.packages("gridExtra") 
-#
+#install.package("margins")
 library(haven)
 library(tidyverse)
 library(stargazer)
@@ -215,23 +215,25 @@ $$h_{ii} = (\frac{x_i-\bar x}{\sigma_x})^2$$
 
 **Cook's distance**: This is a commonly used estimate of the influence of a data point when performing a least-squares regression analysis. 
 
-1. Residuals vs Fitted: shows if residuals have non-linear patterns.
+### Four Plots
+
+1. **Residuals vs Fitted**: shows if residuals have non-linear patterns.
 
 The first plots the residuals versus the fitted values. We are looking to see whether the residuals are spread uniformly across the line  $y=0$. If there is a U-shape, then that is evidence that there may be a variable “lurking” that we have not taken into account. It could be a variable that is related to the data that we did not collect, or it could be that our model should include a quadratic term.
 
-2. Normal Q-Q: shows if residuals are normally distributed. 
+2. **Normal Q-Q**: shows if residuals are normally distributed. 
 
 Ideally, the points would fall more or less along the line given in the plot. It takes some experience to know what is a reasonable departure from the line and what would indicate a problem. 
 
-3. Scale-Location: shows if residuals are spread equally along with the ranges of predictors.
+3. **Scale-Location**: shows if residuals are spread equally along with the ranges of predictors.
 
 This is a plot that helps us to see whether the variance is constant across the fitted values. Many times, the variance will increase with the fitted value, in which case we would see an upward trend in this plot. We are looking to see that the line is more or less flat.
 
-4. Residuals vs Leverage: helps us to find outliers.
+4. **Residuals vs Leverage**: helps us to find outliers.
 
 Outliers are points that fit the model worse than the rest of the data. Outliers with x-coordinates in the middle of the data tend to have less of an impact on the final model than outliers toward the edge of the x-coordinates. Data that falls outside the red dashed lines are high-leverage outliers, meaning that they (may) have a large effect on the final model. You should consider removing the data and re-running in order to see how big the effect is. Or you could use robust methods (We may discuss this later this semester).
  
-Perfect Linear Regression from simulated data 
+Perfect Linear Regression from simulated data: 
 ```{r}
 set.seed(1)
 y = rnorm(1000, 100,10)
