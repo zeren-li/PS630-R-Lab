@@ -7,17 +7,19 @@ output:
 ---
 
 ```{r,include = FALSE}
-knitr::opts_chunk$set( warning = FALSE)
 # use the following code to install tidyverse
 #install.packages("tidyverse") 
 #install.packages("haven") 
 #install.packages("xtable") 
 #install.packages("gridExtra") 
+#
 library(haven)
 library(tidyverse)
 library(stargazer)
 library(xtable)
 library(gridExtra)
+library(margins)
+
 ```
 
 Roadmap
@@ -34,7 +36,7 @@ Roadmap
 
 $$ Y_i = \beta_0 + \beta_1  X_i + u_i$$
 
-1. Linear in parameters: the dependent variable is a linear function of indepdent variable(s)
+1. Linear in parameters: the dependent variable is a linear function of the independent variable(s)
 2. Random sampling of observations: observations are randomly drawn from the above population function
 3. Sample variation in explanatory variables: $X_i$ are not the same value
 4. Zero conditional mean
@@ -54,16 +56,16 @@ $$ t = \frac{\text{estimated value} - \text{hypothesized value}}{\text{standard 
 
 For testing the hypothesis $H_0: \beta_1 = \beta_{1,0}$, we need to perform the following steps:
 
-1. Compute the standard error of $\hat{\beta}_1$, $sigma(\hat{\beta}_1)$
+1. Compute the standard error of $\hat{\beta}_1$, $\sigma_{\hat{\beta}_1}$
 
-\[\hat{\sigma}_{\hat{\beta}_1} = \sqrt{  \frac{\frac{1}{n-2} \sum_{i=1}^n (Y_i - \overline{Y})^2 }{  \sum_{i=1}^n (X_i - \overline{X})^2 }}
+\[\hat{\sigma}_{\hat{\beta}_1} = \sqrt{  \frac{\frac{1}{n-k-1} \sum_{i=1}^n (Y_i - \overline{Y})^2 }{  \sum_{i=1}^n (X_i - \overline{X})^2 }}
 \]
 
 2. Compute the $t$-statistic
 
 \[  \frac{\hat{\beta}_1 - \beta_{1,0}}{ \sigma(\hat{\beta}_1) } \sim  t_{n-k-1}. \]
 
-where $k$ is the number of paramter, $n$ is the number of observation.
+where $k$ is the number of parameters, $n$ is the number of observations.
 
 For bivariate regression, $n-k-1 = n-2$.
 
@@ -185,11 +187,11 @@ All inference made in the previous discussion relies on the assumption that the 
 
 $$ salary_i = \beta_0 + \beta_1 \cdot sales_i + u_i. $$
 
-- On average, CEO with higher sales earn more than their peers with lower sales -> an upward sloping regression line. 
+- On average, CEOs with higher sales earn more than their peers with lower sales -> an upward sloping regression line. 
 
-- It seems plausible that earnings of CEO with lower sales have a higher dispersion than those of CEO with higher sales. 
+- It seems plausible that earnings of CEOs with lower sales have a higher dispersion than those of CEOs with higher sales. 
 
-- Some other factors matter for salary (relations with the board, Charisma, control of debt, etc.)
+- Some other factors matter for salary (work experience, public image, control of debt, etc.)
     
 
 ```{r}
@@ -202,7 +204,16 @@ ceo %>%
   ylab("salary(thousand USD)")
 ```
 
-## Residual Analaysis
+## Residual Analysis
+
+Some new terms:
+**Leverage** This is a measure of how unusual the X value of a point is, relative to the X observations as a whole. In bivariate regression, leverage is:
+
+$$h_{ii} = (\frac{x_i-\bar x}{\sigma_x})^2$$
+
+**Standardized Residual**: This is a measure of the size of the residual, standardized by the estimated standard deviation of residuals based on all the data.
+
+**Cook's distance**: This is a commonly used estimate of the influence of a data point when performing a least-squares regression analysis. 
 
 1. Residuals vs Fitted: shows if residuals have non-linear patterns.
 
@@ -218,12 +229,28 @@ This is a plot that helps us to see whether the variance is constant across the 
 
 4. Residuals vs Leverage: helps us to find outliers.
 
-Outliers are points that fit the model worse than the rest of the data. Outliers with x-coordinates in the middle of the data tend to have less of an impact on the final model than outliers toward the edge of the x-coordinates. Data that falls outside the red dashed lines are high-leverage outliers, meaning that they (may) have a large effect on the final model. You should consider removing the data and re-running in order to see how big the effect is. Or you could use robust methods (We may discuss this later this semster).
+Outliers are points that fit the model worse than the rest of the data. Outliers with x-coordinates in the middle of the data tend to have less of an impact on the final model than outliers toward the edge of the x-coordinates. Data that falls outside the red dashed lines are high-leverage outliers, meaning that they (may) have a large effect on the final model. You should consider removing the data and re-running in order to see how big the effect is. Or you could use robust methods (We may discuss this later this semester).
  
+Perfect Linear Regression from simulated data 
+```{r}
+set.seed(1)
+y = rnorm(1000, 100,10)
+x = rnorm(1000, 10,3)
+
+m2 <- lm(y~x)
+
+par(mfrow=c(2,2))
+plot(m2)
+```
+Our model:
+
 ```{r}
 par(mfrow=c(2,2))
 plot(m1, ask=F)
 ```
+
+
+
 
 Log Transformation
 =======================
@@ -236,7 +263,7 @@ Log Transformation
 
 **log-log**,  $ln(y) = \beta_1 ln(x) + \beta_0$, a $1\%$ change in x results in a $\beta_1\%$  change in y
 
-```{r echo=FALSE}
+```{r echo=FALSE, warning=FALSE}
 # add logged variables
 ceo_logged <- ceo %>% 
   mutate(l_sales = log(sales) ,
@@ -246,7 +273,7 @@ ceo_logged <- ceo %>%
 
 p1 = ggplot(ceo_logged, aes(x = salary)) +
     # histogram with density instead of count on y-axis
-    geom_histogram(aes(y=..density..),    
+    geom_histogram(aes(y=..density.. ),    
                    colour="black", fill="white") +
   # overlay with transparent density plot
     geom_density(alpha=.2, fill="red")  
@@ -260,7 +287,7 @@ p2 = ggplot(ceo_logged, aes(x = sales)) +
 
 p3 = ggplot(ceo_logged, aes(x = l_salary)) +
     # histogram with density instead of count on y-axis
-    geom_histogram(aes(y=..density..),    
+    geom_histogram(aes(y=..density.. ),    
                    colour="black", fill="white") +
   # overlay with transparent density plot
     geom_density(alpha=.2, fill="green")  
@@ -293,12 +320,14 @@ m4 <- lm(l_salary ~ l_sales, ceo_logged)
 
 ```
 
-```{r, result = "asis"}
+Export regression table
+
+```{r, results='asis', warning=FALSE}
 # export regression table
-stargazer(m1,m2,m3,m4, header = F, type = "text")
+stargazer(m1,m2,m3,m4, header = F)
 ```
 
-
+Visualize the model in  Column 4
 
 ```{r}
 # plot observations and add the regression line
@@ -309,20 +338,18 @@ ggplot(ceo, aes(x = log(sales), y = log(salary) )) +
 
 ## Quadratic Regression
 
-$$ salary_i = \beta_0 + \beta_1 \cdot sales_i +  \beta_2 \cdot sales_i^2  + u_i. $$
+We are interested in estimating the following model:
+
+$$salary_i = \beta_0 + \beta_1 \cdot sales_i +  \beta_2 \cdot sales_i^2  + u_i.$$
 
 
 ```{r}
-q_ceo <- ceo %>%
- mutate(
-   # transform to billion USD
-   sales = sales/1000,
-   sales_2 = sales^2)
-
+q_ceo = ceo %>%
+  mutate(sales = sales/1000)
 # fit a quadratic regression
-q_m <- lm(salary ~ sales_2 + sales, q_ceo  )
+q_m <- lm(salary ~ sales + I(sales^2), q_ceo)
 
-# summary of regression
+# summary of  our regression model
 summary(q_m)
 
 # coefficients
@@ -330,17 +357,28 @@ coef(q_m)
 
 # predicted value of y
 # by hand
-y_predict_byhand <- coef(q_m)[1] + coef(q_m)[2] * q_ceo$sales_2 + coef(q_m)[3] * q_ceo$sales
+y_predict_byhand <- coef(q_m)[1] + coef(q_m)[2] * q_ceo$sales + coef(q_m)[3] * (q_ceo$sales^2)
 
 # use predict()
 y_predict <- predict(q_m)
 
 # double check two outputs 
 data.frame(y_predict_byhand, y_predict) %>% head()
-
 ```
 
-$$ salary_i = 674.14 + 67.70 \cdot sales_i  -0.96 \cdot sales_i^2  + u_i. $$
+Fitted model:
+
+$$salary_i = 674.14 + 67.70 \cdot sales_i  -0.96 \cdot sales_i^2  + u_i$$
+
+Compute marginal effect:
+
+$$\frac{\partial salary}{\partial sales} = ?$$
+
+```{r}
+margins(q_m, at = list(sales = 1)) 
+margins(q_m, at = list(sales = 51)) 
+margins(q_m, at = list(sales = 35.3)) 
+```
 
 ```{r}
 ggplot(q_ceo, aes(x = sales, y = salary)) +
@@ -348,7 +386,6 @@ ggplot(q_ceo, aes(x = sales, y = salary)) +
   stat_smooth(method = "lm", formula = y ~ x + I(x^2), size = 1) +
   xlab("sales (billion USD)")
 ```
-
 
 
 
