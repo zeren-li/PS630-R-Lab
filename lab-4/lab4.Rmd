@@ -12,7 +12,7 @@ output:
 #install.packages("haven") 
 #install.packages("xtable") 
 #install.packages("gridExtra") 
-#install.package("margins")
+#install.packages("margins")
 library(haven)
 library(tidyverse)
 library(stargazer)
@@ -118,7 +118,7 @@ denom = 1/(n-2) * sum(u_hat^2)
 num =  sum( (x- mean(x))^2 )
 
 sigma_beta1 = sqrt(denom/num)
-
+sigma_beta1
 # t statistic
 t_test = (beta1 - 0)/sigma_beta1
 t_test
@@ -139,7 +139,6 @@ m1 <- lm(salary ~ sales, data = ceo)
 
 # summary of regression
 sum = summary(m1)
-sum
 ```
 
 ```{r, results= "asis"}
@@ -207,6 +206,7 @@ ceo %>%
 ## Residual Analysis
 
 Some new terms:
+
 **Leverage** This is a measure of how unusual the X value of a point is, relative to the X observations as a whole. In bivariate regression, leverage is:
 
 $$h_{ii} = (\frac{x_i-\bar x}{\sigma_x})^2$$
@@ -239,7 +239,7 @@ set.seed(1)
 y = rnorm(1000, 100,10)
 x = rnorm(1000, 10,3)
 
-m2 <- lm(y~x)
+m2 <- lm(y ~ x)
 
 par(mfrow=c(2,2))
 plot(m2)
@@ -248,9 +248,9 @@ Our model:
 
 ```{r}
 par(mfrow=c(2,2))
-plot(m1, ask=F)
-```
+plot(m1)
 
+```
 
 
 
