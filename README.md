@@ -11,4 +11,4 @@ This repository contains the lab session material for the first course of the qu
 
 [Lab 3: `ggplot` & OLS ](../../tree/master/lab-3): data visualization using using `ggplot`, manually perform OLS, export regression table using `stargazer`
 
-[Lab 3: Hypothesis tests, Heteroskedasticity, Regression Diagnostics, Non-linearity ](../../tree/master/lab-4): using `R` to conduct hypothesis tests mannually, run regression diagnostics using `plot()`, logged transformation, and quadratic regression.
+[Lab 4: Hypothesis tests, Heteroskedasticity, Regression Diagnostics, Non-linearity ](../../tree/master/lab-4): using `R` to conduct hypothesis tests mannually, run regression diagnostics using `plot()`, logged transformation, and quadratic regression.
