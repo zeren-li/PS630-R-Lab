@@ -1,0 +1,368 @@
+---
+title: "lab 5"
+author: "Zeren Li"
+date: "10/3/2019"
+output: 
+   pdf_document: default
+---
+
+## Roadmap
+
+- Matrix
+
+- Multivariate regression
+
+- Omitted variable bias
+
+- Multicollinearity
+
+```{r include=FALSE}
+#install.packages("wooldridge")
+#install.packages(GGally)
+#install.packages(car)
+library(tidyverse)
+library(GGally)
+library(stargazer)
+library(car)
+```
+
+## Matrix
+
+### Vector
+
+```{r}
+# unit Vector
+matrix(1,3,1)
+
+#zero vector
+matrix(0,3,1)
+```
+
+```{r}
+# construct a 3*2 matrix
+A =  matrix(c(2,3,-2,1,2,2),3,2)
+A
+
+# Is something a matrix
+is.matrix(A)
+```
+
+### Operation
+
+```{r}
+# multiplication by a scalar
+c <- 3
+c*A
+
+# matrix addition & subtraction
+B <- matrix(c(4,-2,1,1,2,1),3,2)
+A + B
+A - B
+
+# matrix multiplication
+E <- matrix(c(2,-2,1,2,3,1),2,3) # 2*3 matrix
+ 
+E %*% A # 2*3 matrix * 3*2 matrix
+A %*% E # 3*2 matrix * 2*3 matrix
+```
+
+### Transpose
+
+```{r}
+# recall A
+A
+# T(A)
+t(A)
+
+# T(T(A)) = A
+t(t(A))
+```
+### Common Matrices
+
+```{r}
+# unit matrix
+matrix(1,3,2)
+
+#zero matrix
+matrix(0,3,2)
+
+# diagonal Matrix
+S <- matrix(c(2,3,-2,1,2,2,4,2,3),3,3)
+S
+diag(S)
+
+diag(diag(S))
+
+# identity matrix
+I = diag(c(1,1,1))
+I
+
+# Symmetric Matrix
+C = matrix(c(2,1,5,1,3,4,5,4,2),3,3)
+C
+
+CT <- t(C)
+
+# inverse of a matrix
+A <- matrix(c(4,4,-2,2,6,2,2,8,4),3,3)
+
+AI <- solve(A)
+AI
+
+A %*% AI
+AI %*% A
+```
+
+## Regression in Matrix Notation
+
+Simple Linear Regression:
+
+$$Y_i = \beta_0 +  x_i \beta_1 + c + u_i \text{  for  } i = 1,
+\ldots, n$$  
+ 
+Rewrite in vectors:
+
+\begin{align*}
+  \left[
+\begin{array}{c}  y_1 \\ \vdots \\  y_n \end{array} 
+  \right]   =  & 
+ \left[ \begin{array}{c}  1 \\ \vdots \\ 1 \end{array}  \right]   \beta_0 + 
+ \left[ \begin{array}{c}  x_1 \\ \vdots \\  x_n \end{array}
+ \right] \beta_1 + 
+\left[ \begin{array}{c}  u_1 \\ \vdots \\ u_n  \end{array}
+\right]
+\\
+ & \\
+\left[
+\begin{array}{c}  y_1 \\ \vdots \\  y_n \end{array} 
+  \right]   =  & 
+ \left[ \begin{array}{cc}  1 &  x_1 \\ \vdots & \vdots \\ 1 & x_n\end{array}  \right]   
+ \left[ \begin{array}{c}  \beta_0  \\  \beta_1 \end{array}
+ \right] + 
+\left[ \begin{array}{c}  u_1 \\ \vdots \\ u_n  \end{array}
+\right] \\
+ & \\ 
+\mathbf{Y} = & \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\varepsilon}
+\end{align*}
+
+## Ordinary Least Squares
+
+* OLS estimates of parameters $\beta_0$ and $\beta$ minimize sum of squared errors
+     $$L(\boldsymbol{\beta}) =  \sum_{i=1}^n (Y_i - (\beta_0 + X_i \beta_1))^2$$
+     $$L(\boldsymbol{\beta}) = (\mathbf{Y} - \mathbf{X} \boldsymbol{\beta})^T(\mathbf{Y} - \mathbf{X} \boldsymbol{\beta})$$
+
+* OLS estimate of $\boldsymbol{\beta}$
+     $$\hat{\boldsymbol{\beta}} = (\mathbf{X}^T\mathbf{X})^{-1} \mathbf{X}^T\mathbf{Y}$$
+
+## Summarizing Model Fit
+
+*  Fitted values 
+$$\hat{Y}_i = x_i \hat{\beta}$$
+*  Residuals (estimates of errors)
+$$u_i = Y_i - \hat{Y}_i = \hat{u}_i$$  
+
+\begin{align*}
+  ESS & =  \sum_{i = 1}^n \left( \hat{Y_i} - \overline{Y} \right)^2   \\
+  TSS & =  \sum_{i = 1}^n \left( Y_i - \overline{Y} \right)^2  \\
+  SSR & = \sum_{i = 1}^n \left( Y_i - \hat{Y} \right)^2  \\
+  R^2 & = \frac{ESS}{TSS} \\
+\end{align*}
+
+* $MSE = SSE/(n - p )$ is an estimate of $\sigma^2$
+* degrees of freedom $n - p$ where $p$ is the number of parameters in the mean function
+
+## Example: Discrimination Analysis
+
+`discrim` is a zip code-level data on prices for various items at fast-food restaurants, along with characteristics of the zip code population, in New Jersey and Pennsylvania. The idea is to see whether fast-food restaurants charge higher prices in areas with a larger concentration of blacks.
+
+```{r , echo=T}
+data("discrim", package="wooldridge")  #from wooldridge package
+
+dim(discrim)
+names(discrim)
+```
+
+$$psoda = \beta_0 + \beta_1 prpblck + income+ u.$$
+
+## Pairs Plots
+
+```{r pairs, warning= FALSE}
+discrim1 <- discrim %>%
+        select(psoda,prpblck, income) %>%
+        na.omit() 
+
+ggpairs(discrim1)
+```
+
+### Summary Statistics
+
+```{r, results="asis", warning= FALSE}
+stargazer(discrim1, header = FALSE)
+```
+
+
+```{r}
+# indepedent variable
+X_ncons <- as.matrix(discrim1[2:3]) 
+
+# constant
+cons <-  as.matrix( rep(1,length(discrim1$psoda)))
+
+X <- cbind(cons,X_ncons)
+y <- as.matrix(discrim1[1])
+
+b<- solve(t(X) %*% X) %*% t(X)%*%y
+b
+
+# y hat
+y_hat_byhand <- X %*% b
+
+colnames(y_hat_byhand) <- "y_hat_byhand"
+
+# u hat
+u_hat = y-y_hat_byhand 
+
+m1 <- lm(psoda ~ prpblck + income, discrim1)
+y_hat <- predict(m1)
+
+data.frame(y, y_hat_byhand,  y_hat ) %>% head()
+```
+
+# Exercise: perform OLS regression using matrix operation
+
+```{r}
+X1 <- matrix(c(1,8,3.8, 1,4.5,2.7,3,4,1),3,3)
+y1 <- matrix(c(1,0,1),3,1)
+
+cons <-  as.matrix( rep(1,3))
+X2 <- cbind(cons, X1 )
+
+# compute beta
+```
+
+### Measure of Fit
+
+```{r}
+# tss
+ tss <- sum( (y - mean(y))^2)
+ tss
+ # ESS
+ ess <- sum( (y_hat - mean(y))^2)
+ ess
+ # SSR
+ ssr <- sum( (y- y_hat)^2 )
+ ssr
+ # R^2
+ r_2 = ess/tss
+ r_2
+```
+
+double-check with the result from `lm()`
+
+```{r}
+summary(m1) 
+```
+
+## Omitted variable bias
+
+OVB is the bias in the OLS estimator that arises when the regressor, $X$, is *correlated* with an omitted variable. For omitted variable bias to occur, two conditions must be fulfilled:
+ -  $X$ is correlated with the omitted variable. 
+ - Omitted variable is a determinant of the $Y$.
+
+Together, result in a violation of the first OLS assumption $E(u_i\vert X_i) = 0$. Formally, the resulting bias can be expressed as
+
+## Direction of Bias
+
+See details in the chapter 3 of Wooldridge's book.
+
+\begin{table}
+\centering
+\begin{tabular}{lll}  \hline
+ & Corr($x_1$, $x_2$) > 0 & Corr($x_1$, $x_2$) < 0  \\ \hline
+$\beta_2$ > 0 & Positive Bias & Negative Bias  \\ 
+$\beta_2$  < 0 &Negative Bias & Positive Bias \\ \hline
+\end{tabular}
+\end{table}
+
+## Example: discrimination analysis
+
+$$log(psoda) = \beta_0 + \beta_1 prpblck + \beta_2log(income) + u.$$
+
+```{r, warning= FALSE}
+discrim %>% 
+      select(lpsoda, prpblck, lincome)   %>% 
+      ggpairs()
+```
+
+
+```{r, results="asis", warning=FALSE}
+m1 <- lm(lpsoda ~ prpblck , discrim)
+m2 <- lm(lpsoda ~ lincome , discrim)
+m3 <- lm(lpsoda ~ prpblck + lincome, discrim)
+
+stargazer(m1, m2, m3, type = "latex")
+```
+
+ Yes, one unit shift in prpblck equals a 12% increase in the price of soda, but what does one unit change in proportion black really mean.
+
+One point improvement is actually a 100% improvement, so a 20% improvement is actually a .20 point improvement.  Therefore, a 2.4% increase in the price of soda.
+
+## Multicollinearity
+
+Consider the following model
+
+$$log(psoda) = \beta_0 + \beta_1 prpblck + \beta2 log(income) + beta_3prppov + u.$$
+
+```{r, results="asis", warning=FALSE}
+m4 <- lm(lpsoda ~ prpblck + lincome + prppov, discrim) 
+stargazer(m1,m2,m3,m4, type = "latex")
+```
+
+## Variance inflation factor (VIF)
+
+$$VIF_j = 1/(1-R_j^2)$$
+
+* we would like $VIF_j$ to be smaller
+* Rule of thumb: If $VIF_j$ is above 10 (equivalently, $R^2_j$ is above .9), then we conclude that multicollinearity is a “problem” for estimating bj. But a $VIF_j$ above 10 does not mean that the standard deviation of $b^j$ is too large to $b$
+
+```{r}
+# fit the model
+mv1 <- lm( prpblck ~ prppov + lincome, discrim)
+
+# auxilliary R-squared
+a_r_2 <- summary(mv1)$r.squared
+
+# compute VIF
+1/(1-a_r_2)
+```
+
+### Exercise: calculate the VIF of $lincome$
+
+```{r}
+
+```
+
+### `VIF()`
+
+```{r}
+vif(mv1)
+```
+
+# What if adding more control variables?
+
+Okay, what happened.  The sign on poverty has flipped.
+Now, the poorer you are, the less you pay for soda, after controlling for the impact of cars. 
+
+```{r}
+mv2 <- lm( prpblck ~ prppov + lincome + prpncar, discrim)
+summary(mv2)
+vif(mv2)
+```
+
+
+* It is easy to misuse such statistics because we cannot specify how much correlation among explanatory variables is “too much.” 
+
+* Some multicollinearity “diagnostics” are omnibus statistics in the sense that they detect a strong linear relationship among any subset of explanatory variables.
+
+
+

@@ -1,0 +1,55 @@
+---
+title: "hw7"
+author: "Zeren Li"
+date: "10/23/2019"
+output: pdf_document
+---
+
+**This problem set is due at 8:05 am on 10/31** 
+
+**Please upload both Rmd and PDF files on Sakai**
+
+**Do not show the code in the pdf, show outputs and write-up only**
+
+**Total points: 10**
+
+## Goodness of Fit
+
+Is there a marriage premium for professional athletes? Korenman and Neumark (1991) found a significant wage premium for married men after using a variety of econometric methods, but their analysis is limited because they cannot directly observe productivity. Professional athletes provide an interesting group in which to study the marriage premium because we can easily collect data on various productivity measures, in addition to salary. The data set NBASAL.RAW, on players in the National Basketball Association (NBA), is one example. For each player, we have information on points scored, rebounds, assists, playing time, and demographics. 
+
+```{r}
+data("nbasal", package="wooldridge")  #from wooldridge package
+```
+
+1. Provide summary statistics and data visualization of the following variables: `marr`, `points`, `coll`, `exper`, `age`, `black`,`children`. 
+  -  Hint: You can use `stargazer()` and `ggpairs()`.
+
+2. Split the data into a training set (75\%) and test set (25\%).    Create a new dummy variable of college basketball experience using `coll`. Use the training data, estimate a linear regression model relating points per game to NBA experience and college basketball experience dummy. Include experience in quadratic form. Interpret your results.
+
+3. Holding NBA experience fixed, does a player with college basketball experience score more than his peers without such experience? How much more or less? Is the difference statistically significant?
+
+4. Now, add marital status(`marr`) to the equation. Holding college basketball experience and NBA experience fixed, are married players more productive (based on points per game)?
+
+5. Compute the r-squared, adjusted r-squared, RMSE by hand. Double-check it with the result from built-in function.
+
+6. Conduct a F-test, testing the null hypothesis that `marr` has no effect on points per game against the alternative that `marr` has a positive effect. Compare `(y ~ exper + exper^2 + coll + marr)` vs that model without `marr`. Based on the test, will you include `marr` in a final model explaining the points scored by NBA players?
+
+7. Add the variables, `age`, `black`,`children` to the model you develop in question 6. Which of these factors are individually significant? Are these factors jointly significant?
+
+8. Try adding or dropping variables, using the F-test or the RMSE,  until you find a model you’re most happy with. Then run this final model on both the training dataset and the test dataset. Is the RMSE larger or smaller in the test data compared to the training set? 
+
+## Measurement Error
+
+Hamermesh and Biddle (1994) used measures of physical attractiveness in a wage equation. 
+
+```{r}
+data("beauty", package="wooldridge")  #from wooldridge package
+```
+
+9. Regress `lwage` on `looks`, controlling for a set of control variables using the following equation. Report heteroskedasticity-robust standard errors below coefficients. Interpret the results.
+
+$$lwage = \beta_0 + \beta_1looks + \beta_2 black + \beta_3 female + \beta_4educ + \beta_5exper + \beta_6exper2 + u $$
+
+10. Does this model suffer from measurement error in dependent variable or independent variables? If you think there are measurement errors, state the type of errors and explain how these errors bias our results? 
+
+

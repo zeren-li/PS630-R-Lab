@@ -1,0 +1,412 @@
+---
+title: "Lab-8"
+author: "Zeren Li"
+date: "10/24/2019"
+output: html_document
+---
+
+## Roadmap
+
+- Dummy variable
+- Categotical variable
+- Interaction effect
+
+```{r}
+library(wooldridge)
+library(tidyverse)
+library(ggplot2)
+library(viridis)
+library(GGally)
+library(AER)
+```
+
+
+### Teaching Rating Dataset
+
+This is a dataaset on course evaluations, course characteristics, and professor characteristics for 463 courses for the academic years 2000--2002 at the University of Texas at Austin.
+
+
+```{r}
+data(data = "TeachingRatings", package = "AER")
+
+```
+
+
+
+```{r}
+TeachingRatings %>%
+  select(eval, tenure, gender) %>%
+  as.data.frame() %>%
+  ggpairs()
+```
+
+
+```{r, results='asis'}
+stargazer::stargazer(TeachingRatings, header = F)
+```
+
+
+
+```{r}
+m1 <- lm(eval ~ beauty  , TeachingRatings )
+
+summary(m1)
+y_hat <- predict(m1)
+
+ggplot(TeachingRatings, aes(x = beauty, y = eval)) +
+  geom_point() +
+  geom_smooth(method = "lm" )
+```
+
+/*Take a good look at this. Now, the dummy plays a
+different role, modifying the impact of TeachingRatings
+What  two lines I can draw out of this regression?*/
+
+Dummies are best thought of as shifts in the constant. Thus, 
+the new intercept for the female line is the coefficient on catcher plus the original intercept.
+
+$$  eval = \beta_{0} + \beta_{1}beauty + \delta female + e$$
+
+$$  E(eval) = 
+    \begin{cases}
+      (\beta_{0} + \delta)  + \beta_1 beauty., & \text{female}=1 \\
+      \beta_{0} +\beta_1 beauty., & \text{female} = 0
+    \end{cases} $$
+
+What about substantive effects. What is our predicted eval for the 
+mean female and the mean male from our dummy variable regression?
+
+```{r}
+m2 <- lm(eval ~ beauty + gender , TeachingRatings )
+
+# male intercept
+m2$coefficients[1] 
+# female intercept
+m2$coefficients[1] +  m2$coefficients[3]
+```
+
+
+For male with average beauty score : $\beta0 + \beta1*mean(exper)$  
+
+```{r}
+ m2$coefficients[1] + m2$coefficients[2] * mean(TeachingRatings$beauty)
+```
+
+For female with average beauty score: $\beta0 + \beta1*mean(exper) + \beta2 female$  
+
+```{r}
+m2$coefficients[1] + m2$coefficients[2] * mean(TeachingRatings$beauty) + m2$coefficients[3]
+```
+
+Notice the different intercepts we predicted, but the slopes are **similar**.
+
+*Why is this method different then running a regression on 
+only females and then only males and comparing the results 
+with two lines.
+pause;
+
+```{r}
+TeachingRatings %>% 
+  filter(gender == "female")  %>% 
+   lm(eval ~ beauty,.)   
+
+
+TeachingRatings %>% 
+  filter(gender == "male")  %>% 
+   lm(eval ~ beauty,.)   
+
+# reg eval exper if female==1;
+ggplot(TeachingRatings, aes(x = beauty, y = eval, group = gender, color = factor(gender) )) +
+  geom_point() +
+  geom_smooth(method = "lm" ) 
+```
+
+
+Now, what if I had two dummies in this regression model.  Let's
+add another model for above average TeachingRatings. For both male and female
+
+```{r}
+lm(eval ~ beauty + gender + tenure, TeachingRatings) %>% summary()
+```
+
+For male without tenure (female = 0, tenure = 0)
+
+For male with tenure (female = 0, tenure = 1)
+
+For female without tenure (female = 1, tenure = 0)
+
+For female with tenure (female = 1, tenure = 1)
+
+
+## Multiple categorical variables
+
+### Create age group
+
+Here, we create an `age_group` categorical variable. If a professor is in 30-39, then we code `age_group` as 1; If 40-49, we code `age_group` as 2, If 50-59, we code `age_group` as 3; If 60 and above, then 4
+
+```{r}
+tr1 <- TeachingRatings %>%
+  mutate(age_group  = if_else(age <40 ,1 ,
+                      if_else(age <50 ,2,
+                      if_else(age <60 ,3, 4))) %>% as.factor())
+
+table(tr1$age_group)
+
+```
+
+
+
+```{r}
+ggplot(tr1, aes(x = age_group, fill = age_group )) +
+  geom_bar()
+```
+
+
+```{r}
+lm(eval ~ age_group + beauty, tr1) %>% summary()
+```
+
+## Interaction Analysis
+
+### Marginal Effect 
+
+Marginal effects tells us how a dependent variable (outcome) changes when a specific independent variable (explanatory variable) changes. Other covariates are assumed to be held constant. Marginal effects are often calculated when analyzing regression analysis results.
+
+
+### The marginal effect of `beauty` on `eval`?
+
+$$
+\frac{\partial \hat{eval}}{\partial beauty} = \hat{\beta}_1
+$$
+
+Note: `beauty` is a continuous variable
+
+Answer: One unit increase in `beauty` is associated with $\hat{\beta}_1$  change in `eval`.
+
+### Question 1b
+
+Hypothetically, if `beauty` is a dummy variable (say, `beauty=1` means good-looking and `beauty=0` means otherwise), what is the marginal effect?
+
+Answer: When `beauty` change from 0 to 1, `eval` change by $\hat{\beta}_1$. 
+
+
+
+## Interacting dummy variable with dummy variable
+
+$$\hat{eval_i} = \hat{\beta}_0  + \hat{\beta}_1 female_i +  \hat{\beta}_2 tenure_i + \hat{\beta}_3 female_i*tenure_i + u $$
+
+```{r}
+# two equaviliant way of interaction
+m0 <- lm(eval ~ gender*tenure ,  TeachingRatings)
+summary(m0)
+
+m1 = lm(eval ~  gender + tenure + gender:tenure ,  TeachingRatings)
+summary(m1)
+```
+
+$$\hat{eval_i} = \hat{\beta}_0  + \hat{\beta}_1 female_i +  \hat{\beta}_2 tenure_i + \hat{\beta}_3 female_i*tenure_i + u $$
+
+### Substantive Effects of Dummy Interactions
+
+\begin{table}
+\centering
+\begin{tabular}{lll}  \hline
+ & untenured  &  tenured \\ \hline
+male & \hat{\beta}_0 = 4.44 & \hat{\beta}_0 +  \hat{\beta}_2 = 4.44 + (-0.41) = 4.03 \\ 
+female &  \hat{\beta}_0  + \hat{\beta}_1  = 4.40 + (-0.54) = 3.86 & & \hat{\beta}_0  + \hat{\beta}_1 \hat{\beta}_2 + \hat{\beta}_3  = 4.4 + (-0.5) + (-0.4) + (0.46) = 3.91 \\ \hline
+\end{tabular}
+\end{table}
+
+## Interacting dummy variable with continous variable
+
+$$
+eval_i = \beta_0 + \beta_1 beauty_i + \beta_2 gender + \beta_3 gender_i \times beauty_i+ u
+$$
+
+```{r}
+m_int1 <- lm(eval ~  beauty + gender + gender:beauty ,  TeachingRatings)
+summary(m_int1)
+```
+
+$$
+eval_i = \beta_0(4.08595) + \beta_1(0.20027) beauty_i + \beta_2(-0.19510) gender + \\ \beta_3(-0.11266) gender_i \times beauty_i+ u
+$$
+
+###  The marginal effect of `beauty` on `eval`
+
+$$
+\frac{\partial \hat{eval}}{\partial beauty} = \hat{\beta}_1 + \hat{\beta}_3 \times gender = 0.20027 + -0.11266 = 0.08761
+$$
+
+Note: This is a *continuous* variable.
+
+Answer: One unit increase in `beauty` is associated with $\hat{\beta}_3 + \hat{\beta}_5 \times gender$ units increase of `eval`.
+
+### Exercise: the marginal effect of `gender` on `eval`
+
+$$
+\frac{\partial \hat{eval}}{\partial gender} = \hat{\beta}_2 + \hat{\beta}_3 \times beauty
+$$
+
+Note: This is a *dummy* variable which only takes values 0 and 1.
+
+Answer: When `minority` change from 0 to 1, `eval` change by $\hat{\beta}_4 + \hat{\beta}_5 \times age$.
+
+
+## Interacting continous variable with continous variable
+
+
+$$
+eval_i = \beta_0 + \beta_1 beauty_i + \beta_2 age + \beta_3 beauty_i\times age_i+ u
+$$
+
+###  The marginal effect of `beauty` on `eval`
+
+```{r}
+m_int2 <- lm(eval ~  beauty + age + beauty:age ,  TeachingRatings)
+summary(m_int2)
+```
+
+Our fitted model is:
+
+$$
+eval_i = \beta_0(3.9904777) + \beta_1(-0.3391625) beauty_i + \beta_2(0.0006434) age \\
++ \beta_3(0.0101498) beauty_i\times age_i+ u
+$$
+
+
+$$
+\frac{\partial \hat{eval}}{\partial beauty} = \hat{\beta}_1 + \hat{\beta}_3 \times age = 
+-0.3391625 + 0.0101498 = -0.3290127
+$$
+
+### Exercise: What's the marginal effect of age
+
+$$
+\frac{\partial \hat{eval}}{\partial age} = ?
+$$
+
+## Plotting the Marginal Effect of a Variable
+
+Back to the business: How do we plot the interaction effect?? Let's set it straight, what are the variables of the x-axis and the y-axis?
+
+### Marginal effect of a continuous variable that has no interaction effect
+
+Example: We would like to plot the marginal effect of `beauty` on `eval` using the following model 
+
+$$
+eval_i = \beta_0 + \beta_1 beauty_i + \beta_2 age + u
+$$
+
+- x-Axis: Value of ?? (anything, the marginal effect is constant conditional on any other independent variables)
+- y-Axis: Value of $\frac{\partial \hat{eval}}{\partial beauty} = \beta_1$
+
+No interaction effect: This means the marginal effect of ``beauty` is constant. There isn't much value to visualize it 
+
+```{r}
+library(margins)
+m <- lm(eval ~ age + beauty + tenure + gender, data = TeachingRatings)
+margins(m)
+plot(margins(m))
+```
+
+### Visualing the marginal effect in an interaction model
+
+For example, we want to visualize this model:
+
+$$
+eval_i = \beta_0(3.9904777) + \beta_1(-0.3391625) beauty_i + \beta_2(0.0006434) age \\
++ \beta_3(0.0101498) beauty_i\times age_i+ u
+$$
+
+Example: We would like to plot the marginal effect of `beauty` on `eval`
+
+- x-Axis: Value of `age`
+- y-Axis: Value of $\hat{\beta}_1 + \hat{\beta}_3 \times age$
+
+
+```{r}
+m_int2 <- lm(eval ~  beauty + age + beauty:age ,  TeachingRatings)
+
+plot(margins(m_int2, at = ))
+```
+
+```{r}
+# Step 0: Does the marignal effect depend on any other variables?
+# Yes. Age
+
+# Step 1: Get summary statistics of the variables identified in the above step
+summary(d$age)
+
+# Step 2: Simulate a sequence of the variable of interest in its range
+age_sim = seq(min(d$age), max(d$age), length.out=20)
+
+# Step 3: Multiply the sequence with the simulated beta's
+quantiles = c(0.025, 0.5, 0.975)
+
+me_minority = apply(beta_sim[, c("age", "age:minority")], 1, function(x) x["age"] * 1 + x["age:minority"] * age_sim) %>%
+  apply(1, function(x) quantile(x, quantiles)) %>%
+  as.data.frame() %>%
+  t() %>%
+  as.data.frame() %>%
+  mutate(variable = age_sim)
+
+me_minority
+
+me_minority %>% 
+  ggplot(aes(x = variable, y = `50%`)) +
+  geom_line() + geom_errorbar(aes(ymin = `2.5%`, ymax = `97.5%`), color = "darkgray") +
+  geom_hline(yintercept = 0, color = "red", linetype = 2) +
+  xlab("age") + ylab("Marginal Effect of Minority Status")
+
+me_minority %>% 
+  ggplot(aes(x = variable, y = `50%`)) +
+  geom_line() + geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), alpha = 0.3) + 
+  geom_hline(yintercept = 0, color = "red", linetype = 2) +
+  xlab("age") + ylab("Marginal Effect of Minority Status")
+```
+
+### Marginal effect of a continuous variable that interacts with a dummy variable
+
+Example: We would like to plot the marginal effect of `minority` on `eval`
+
+- x-Axis: Value of `beauty`
+- y-Axis: Value of $\hat{\beta}_4 + \hat{\beta}_5 \times age$
+
+```{r}
+# Step 0: Does the marignal effect depend on any other variables?
+# Yes. minority
+
+# Step 1: Get summary statistics of the variables identified in the above step
+table(d$minority)
+
+# Step 2: Simulate a sequence of the variable of interest in its range
+minority_sim = c(0, 1)
+
+# Step 3: Multiply the sequence with the simulated beta's
+quantiles = c(0.025, 0.5, 0.975)
+
+me_age = apply(beta_sim[, c("minority", "age:minority")], 1, function(x) x["minority"] * 1 + x["age:minority"] * minority_sim) %>%
+  apply(1, function(x) quantile(x, quantiles)) %>%
+  as.data.frame() %>%
+  t() %>%
+  as.data.frame() %>%
+  mutate(variable = minority_sim)
+
+# Plot: using the original code: Bad
+# Problem: An informative plot for a variable interacting with a dummy is slightly different.
+me_age %>% 
+  ggplot(aes(x = variable, y = `50%`)) +
+  geom_line() + geom_errorbar(aes(ymin = `2.5%`, ymax = `97.5%`), color = "darkgray") +
+  geom_hline(yintercept = 0, color = "red", linetype = 2) +
+  xlab("minority") + ylab("Marginal Effect of Age")
+
+me_age %>% 
+  mutate(variable = factor(variable)) %>%
+  ggplot(aes(x = variable, y = `50%`)) +
+  geom_point() +
+  geom_line(aes(group = 1)) + geom_errorbar(aes(ymin = `2.5%`, ymax = `97.5%`), width = 0.1) +
+  geom_hline(yintercept = 0, color = "red", linetype = 2) +
+  xlab("minority") + ylab("Marginal Effect of Age")
+# This also apply for interaction with categorical variables (more than two classes)
+```

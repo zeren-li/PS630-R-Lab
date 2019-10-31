@@ -1,0 +1,379 @@
+---
+title: "Lab 7"
+author: "Zeren Li"
+output:
+  pdf_document: default
+---
+
+```{r, include=FALSE}
+library(AER) # For the testsi
+library(wooldridge)
+library(tidyverse)
+library(GGally)
+library(stargazer)
+library(car)
+theme_set(theme_minimal())
+
+knitr::opts_chunk$set(
+      echo = TRUE,
+      warning=FALSE,
+      message=FALSE,
+      fig.width=5, 
+      fig.height=4 )
+```
+
+## Roadmap
+
+- Functional Programming in R
+- Goodness of Fit
+- Joint Significance Tests
+
+## Function in R
+
+Functions are defined by code with a specific format:
+
+```{r eval=FALSE}
+function.name <- function(arg1, arg2, arg3=2, ...) {
+  newVar <- sin(arg1) + sin(arg2)  # do some useful stuff
+  newVar / arg3   # return value 
+}
+```
+
+
+- **function.name** is the function's name. This can be any valid variable name, but you should avoid using names that are used elsewhere in R
+
+- **arg1, arg2, arg3**: objects inside the `()` are the arguments of the function, also called input. You can write a function with any number of arguments. These can be any R object: numbers, strings, arrays, data frames, or even pointers to other functions
+
+- **function body**: The function code between the within the `{}` brackets is run every time the function is called. This code might be very long or very short. Ideally, functions are short and do just one thing – problems are rarely too small to benefit from some abstraction. Sometimes a large function is unavoidable, but usually, these can be in turn constructed from a bunch of small functions.
+
+- **Return value**: The last line of the code is the value that will be returned by the function. A function doesn't need to return anything, for example, a function that makes a plot might not return anything, whereas a function that does a mathematical operation might return a number or a list.
+
+```{r}
+# a simple sum of square function
+sum_of_squares <- function(x,y) {
+  x^2 + y^2
+}
+
+x1 <- 3
+y1 <- 4
+
+data("saving" , package = "wooldridge")
+  
+# specify the return value
+sum_of_squares1 <- function(x,y) {
+  x_2 <- x^2; y_2 <- y^2
+  z <- x_2 + y_2
+  return(c(z))
+}
+
+sum_of_squares1(x1,y1)
+```
+
+What makes for a good function? READABLE
+
+- Make it Short
+- Perform a single operation
+- Use intuitive names
+
+### Exercise: write your own bivariate OLS function 
+
+```{r}
+ols_bh <- function(x,y) {
+  b1 = mean(cov(x,y)/var(x)) %>% round(5)
+  b0 = mean(y - b1*x) %>% round(5)
+  return(paste("beta1 is", b1, ", and beta0 is", b0 ))
+}
+
+x <- rnorm(10,10,2)
+y <- rnorm(10,5,1)
+
+ols_bh(x,y)
+
+lm(y ~ x)
+```
+
+## Goodness of Fit
+
+### Root Mean Square Error (RMSE) 
+
+Root Mean Square Error is the standard deviation of the residuals (prediction errors). This metric is commonly used for prediction analysis.
+
+\begin{align*}
+RMSE = \sqrt{ \frac 1 {n- k - 1}  \sum_i{(y_i - \hat y)^2}}
+\end{align*}
+
+- $k$: the number of regressors *excluding* the intercept.
+- $n$: the number of observations
+- $\hat y$: the predicted value of y
+
+### Adjusted R^2
+
+- $R^2$ increasing whenever an additional regressor is added to the model
+    - Adding a regressor ---> $SSR$  goes down ---> $R^2$ goes up
+- Adjusted $R^2$ "punishes" the addition of regressors using a correction factor, which is defined as
+
+$$ \bar{R}^2 = 1-\frac{n-1(1-R^2)}{n-k-1}  = 1-\frac{n-1}{n-k-1} \, \frac{SSR}{TSS}. $$
+
+##  Evaluation on Test Set
+
+* Split the data into 2 groups:  training and test
+
+* Fit model to training data
+
+* Predict on test data
+
+* Evaluate RMSE on test data
+
+* In OLS, training RMSE can be driven smaller by adding more predictors
+
+* How well does model predict for new data $y^*$?
+
+\begin{align*}
+RMSE^* = \sqrt{ \frac 1 {n^*- k^* - 1}  \sum_i{(y^*_i - \widehat{y})^2}}
+\end{align*}
+
+* No guarantee that model that has the lowest training RMSE will be the best out of sample RMSE. 
+
+* If test RMSE is much larger than training RMSE, the model might suffer from overfitting.
+
+## MLB
+
+```{r}
+data("mlb1", package="wooldridge")  #from wooldridge package
+
+# variable definition
+?mlb1
+
+mlb <- mlb1 %>%
+  # add population variable
+  mutate(total_pop=(100*whitepop)/ percwhte)
+
+```
+
+1. Set a random number seed at any positive integer to start the randomization process. This will allow me to repeat the process
+and always obtain the same numbers
+
+```{r}
+n = nrow(mlb)
+n.train = floor(.75*n) # 75% training set, 25% test set
+set.seed(2019) 
+train = sample(1:n, size=n.train, rep=F)
+
+mlb_train <- mlb[train,]
+mlb_test <- mlb[-train,]
+```
+
+### Exploratory data analysis
+
+```{r}
+mlb_train %>% 
+    select("years", "gamesyr", "bavg", "hrunsyr", "rbisyr")   %>% 
+ggpairs()
+```
+
+### Summary statistics
+
+```{r, results= "asis"}
+mlb_train %>% 
+    select("years", "gamesyr", "bavg", "hrunsyr", "rbisyr")   %>%
+    stargazer(., header = F, title = "Summary Statistics")
+```
+
+## Fit a model
+
+- The baseline model of player salary. This is where we will begin my analysis.  
+
+```{r}
+m1 <- lm(lsalary ~ years + gamesyr, mlb_train )
+yhat <- predict(m1)
+
+# compute rmse
+rmse_bh <- function(y, ypred,k) {
+          rmse = sqrt(sum((y - ypred)^2)/(length(y)-k-1))
+          return(rmse)
+}
+
+rmse_bh(mlb_train$lsalary, yhat,2)
+summary(m1)
+```
+
+- Then, we add my key theoretical causal variables. Batting Average,
+Home Runs, and RBIs, all in the most recent year. 
+
+```{r}
+m2 <- lm(lsalary ~ years + gamesyr + bavg + hrunsyr + rbisyr , mlb_train )
+summary(m2)
+```
+
+
+# Compute adjusted R^2 by hand
+
+```{r}
+# define the components
+n <- nrow(mlb_train)                            # number of observations (rows)
+k <- length(m2$coefficients)-1                  # number of regressors
+y_mean <- mean(mlb_train$lsalary)
+
+SSR <- sum(residuals(m2)^2)               # sum of squared residuals
+TSS <- sum((mlb_train$lsalary -  y_mean)^2)       # total sum of squares
+ESS <- sum((fitted(m2) - y_mean)^2)       # explained sum of squares
+# compute the measures
+
+Rsq <- 1 - (SSR / TSS)                          # R^2
+adj_Rsq <- 1 - (n-1)/(n-k-1) * SSR/TSS          # adj. R^2
+
+# print the measures to the console
+c("R2" = Rsq, "Adj.R2" = adj_Rsq)
+
+# results using built-in function
+summary(m2)$r.squared
+summary(m2)$adj.r.squared
+
+# Can we write an entire function that gives us r squared, adjusted r squared, and rmse?
+```
+
+## Joint hypothesis testing using the F-Statistic
+
+- Can we reject the hypothesis that the coefficients are zero? 
+
+- A joint hypothesis imposes restrictions on multiple regression coefficients. 
+
+- This is different from conducting individual $t$-tests where a restriction is imposed on a single coefficient. 
+
+The homoskedasticity-only $F$-Statistic:
+
+$$ F = \frac{(SSR_{\text{restricted}} - SSR_{\text{unrestricted}})/q}{SSR_{\text{unrestricted}} / (n-k-1)} $$;
+
+$$ F ~ F_{q,n-k-1}$$ 
+
+- $SSR_{restricted}$ being the sum of squared residuals from the restricted regression, i.e., the regression where we impose the restriction. 
+- $SSR_{unrestricted}$ is the sum of squared residuals from the full model
+- $q$ is the number of restrictions 
+- $k$ is the number of regressors in the unrestricted regression
+
+```{r}
+# bulit-in function
+linearHypothesis(m2, c("bavg=0", "hrunsyr=0", "rbisyr=0"))
+
+# compute by hand
+SSR_r <- sum(residuals(m1)^2)              
+SSR_ur <- sum(residuals(m2)^2)               
+q <- 3      # number of restriction
+n <- nrow(mlb_train)            # number of observations (rows)
+k <- length(m2$coefficients)-1  # number of regressors
+(F_stats <- ((SSR_r - SSR_ur) / q)/(SSR_ur / (n - k - 1)))
+
+# get p value
+1 - pf(F_stats, df1 = q, df2 = n - k - 1)
+
+```
+
+Why are the baseball stats insignificant in individual t-testing, even
+though they are jointly significant?
+
+Our gut reaction should be that they are highly collinear. Those who 
+hit more home runs are more likely to have more runs batted in
+
+Indeed, they are.  Look at the VIF on RBIs.  It is almost entirely 
+explained by the other variables.
+
+Indeed, home runs and rbis have a .89 correlation.
+
+```{r}
+vif(m2)
+
+cor(mlb_train$hrunsyr, mlb_train$rbisyr)
+```
+
+Theoretically, we choose to drop rbis, because rbis are a function of other players, whereas home runs are only created by a single player. What happens to the coefficient and standard errors on home runs after I do this?
+
+```{r}
+m3 <- lm(lsalary ~ years + gamesyr + bavg + hrunsyr, mlb_train)
+summary(m3)
+```
+
+How about adding some other measures of baseball success? e.g. runs scored per year, stolen bases per year, and career fielding perc.
+
+```{r}
+m4 <- lm(lsalary ~ years + gamesyr + bavg + hrunsyr + runsyr + fldperc + sbasesyr, mlb_train)
+summary(m4)
+```
+
+None of the three are individually significant at the .05 level, and the variable of stolen bases has the wrong sign? Why would someone who steals a lot of bases be paid less?
+
+```{r}
+vif(m4)
+cor(mlb_train$sbasesyr, mlb_train$runsyr)
+```
+
+Are fielding percentages and stolen bases doing anything for us?
+Let's do an F-test of the joint significance of these variables.
+
+```{r}
+m5 <- lm(lsalary ~ years + gamesyr + bavg + hrunsyr + runsyr + fldperc + sbasesyr , mlb_train)
+
+linearHypothesis(m5, c("fldperc=0","sbasesyr=0"))
+```
+
+We cannot reject the null hypothesis at the .05 level.
+
+The sign flip on sbases is probably due to high collinearity with runs (lead-off hitters tend to have high runs and stolen bases) and fielding percentage. We choose to drop fldperc and sbasesyr.
+
+So far we haven't yet controlled for the race of the player or the market size, 
+might these have an impact? 
+
+These other factors are important, what sort of bias
+might they be causing in my regressions. Think this through carefully.
+
+```{r}
+m6 <- lm(lsalary ~ years + bavg + hrunsyr + runsyr + total_pop + pcinc + hispan + black, mlb_train)
+summary(m6)
+
+linearHypothesis(m6, c("total_pop=0","pcinc=0","hispan=0","black=0"))
+```
+
+No, they are jointly insignificant. Demographic factors do not seem to affect salary.
+
+How about a position. Short-stop is a highly skilled position. What if we tested whether short-stops are more highly paid than other positions?
+
+```{r}
+m7 <- lm(lsalary ~ years + gamesyr + bavg + hrunsyr + runsyr + shrtstop, mlb_train)
+summary(m7)
+linearHypothesis(m7, c("shrtstop=0"))
+
+# How about catcher?
+m8 <- lm(lsalary ~ years + gamesyr + bavg + hrunsyr + runsyr + catcher, mlb_train)
+
+summary(m8)
+# Variance Inflation Factors
+vif(m8)
+
+rmse_bh(m8$model$lsalary, predict(m8),6)
+summary(m8)
+linearHypothesis(m8, c("catcher=0"))
+```
+
+Yes, all else equal, catchers are paid about 40% more than all players.
+
+What does all else equal or the oft-used *ceteris paribus* mean?   It means that for players with similar years and games played and equivalent offense statistics, catchers get paid more.  **It does not mean just being a catcher means you get paid more.**
+
+
+### Prediction using test data
+
+```{r}
+# yhat of training data
+y_train_hat <- predict(m8)
+rmse_train <- rmse_bh(mlb_train$lsalary, y_train_hat,6)
+
+# yhat of test data
+y_test_hat <- predict(m8, newdata  = mlb_test)
+
+rmse_test <- rmse_bh(mlb_test$lsalary, y_test_hat,6)
+
+c(rmse_train = rmse_train , rmse_test = rmse_test)
+```
+
+## Take-way
+
+\centering \large \textbf ``All models are wrong, but some are useful'' -- George Box
+

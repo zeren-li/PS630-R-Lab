@@ -1,0 +1,34 @@
+---
+title: "Problem Set 6"
+author: ""
+date: "10/17/2019"
+output:  
+      pdf_document: default
+---
+
+**This problem set is due at 8:30 am on 10/24** 
+
+**Please upload both Rmd and PDF files on Sakai**
+
+**Do not show the code in the pdf, show outputs and write-up only**
+
+**Total points: 10**
+
+In this problem set, we will use Wooldridge's dataset VOTE1.dta
+
+## Heteroskedasticity (7 points)
+
+1. Regress _voteA_ on the incumbent's spending _expendA_, _expendA_ squared, the opponent's spending _expendB_, and the incumbent's party strength _prtystrA_. Interpret the coefficients. (2 points)
+2. Perform regression diagnostic using `plot()`. Does heteroskedasticity seem to be a problem with your data? (0.5 point)
+3. Re-create the residual-versus-fitted-value plot, this time using ``ggplot`` rather than `plot` (0.5 point)
+4. Formally test for heteroskedasticity with the Breusch-Pagan test and the White test using the R's built-in function. (1 point)
+5. Run the White test for heteroskedasticity by hand. Verify with the result from Q4. (1 point) 
+6. Supposed you are still suspicious that heteroskedasticity is a problem and decide to use robust standard errors to be safe. Calculate by hand the robust standard error for _expendA_. Verify with R's built-in function. (2 points)
+
+
+## Level-Log Analysis (3 points)
+
+7. Regress _voteA_ on _lexpendA_, _lexpendB_, and the incumbent's party _prtystrA_. Interpret the coefficients. (1 point)
+8. Regress _lexpendA_ on _lexpendB_. Comment on how the opponents' expenditures are related. (1 point)
+9. Calculate the predicted share of votes for your candidate if he spends \$400,000, his opponent spends \$500,000, and the strength of the incumbent's party is 50%. (0.5 point)
+10. If the opponent's spending and party strength remain the same, how many more votes can your candidate gain by increasing his spending to $600,000? (0.5 point)
