@@ -27,7 +27,7 @@ The core tidyverse includes the packages that you're likely to use in everyday d
 
 - `magrittr`: offers a set of operators which make your code more readable
 - `dplyr`: a grammar of data manipulation
-- `ggplot2`:a system for declaratively creating graphics
+- `ggplot2`: a system for declaratively creating graphics
 - `tidyr`: a set of functions that help you get to tidy data
 - `readr`: provides a fast and friendly way to read rectangular data 
 - `purrr`: enhances R’s functional programming (FP) toolkit by providing a complete and consistent set of tools for working with functions and vectors
@@ -75,13 +75,17 @@ find("keys") %>%
 ## Approaches
 
 Basic piping
+
 `x %>% f` is equivalent to `f(x)`
+
 `x %>% f(y)` is equivalent to `f(x, y)`
+
 `x %>% f %>% g` %>% h is equivalent to `h(g(f(x)))`
 
 The argument placeholder
 
 `x %>% f(y, .)` is equivalent to `f(y, x)`
+
 `x %>% f(y, z = .)` is equivalent to `f(y, z = x)`
 
 
@@ -127,12 +131,11 @@ ceo %>% filter(age == 50, salary > 1000 )
 ```{r}
 ceo %>% slice(1:10)
 ```
-### `slice()` - last 5 columns
+### `slice()` - last 5 rows
 
 ```{r}
 ceo %>% slice((n()-4):n())
 ```
-
 
 ### `select()` - select columns
 
@@ -153,7 +156,7 @@ ceo %>% select(-c(salary, profmarg))
 ceo %>% select(salary:college)
 ```
 
-### `select()` - excluse ranges
+### `select()` - exclude ranges
 
 ```{r}
 ceo %>% select(-c(salary:college))

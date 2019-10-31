@@ -58,7 +58,7 @@ For testing the hypothesis $H_0: \beta_1 = \beta_{1,0}$, we need to perform the 
 
 1. Compute the standard error of $\hat{\beta}_1$, $\sigma_{\hat{\beta}_1}$
 
-\[\hat{\sigma}_{\hat{\beta}_1} = \sqrt{  \frac{\frac{1}{n-k-1} \sum_{i=1}^n (Y_i - \overline{Y})^2 }{  \sum_{i=1}^n (X_i - \overline{X})^2 }}
+\[\hat{\sigma}_{\hat{\beta}_1} = \sqrt{  \frac{\frac{1}{n-k-1} \sum_{i=1}^n (Y_i - \hat{Y})^2 }{  \sum_{i=1}^n (X_i - \overline{X})^2 }}
 \]
 
 2. Compute the $t$-statistic
