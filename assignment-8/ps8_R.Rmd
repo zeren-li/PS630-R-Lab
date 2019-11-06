@@ -1,0 +1,46 @@
+---
+title: "Problem Set 8"
+author: "Your Name"
+date: "10/30/2019"
+output: pdf_document
+---
+
+**This problem set is due at 8:05 am on 11/07** 
+
+**Please upload both Rmd and PDF files on Sakai**
+
+**Do not show the code in the pdf, show outputs and write-up only**
+
+**Total points: 10**
+
+Load _auto.dta_. This is a dataset on the prices, mileages, weights, and other characteristics of 74 automobiles. These data originally came from the April 1979 issue of Consumer Reports and from the United States Government EPA statistics on fuel consumption; they were compiled and published by Chambers et al. [1983].
+
+## Dummy Variables and Omitted Variable Bias (4 points)
+
+1. Create a new variable named _guzzler_ that takes the value of 1 if the car's miles per gallon is less than 18 and takes value 0 otherwise. Regress _price_ on _guzzler_ and interpret the coefficients. Do gas guzzlers cost more than the other cars? (1 point)
+
+2. Create a scatter plot of _price_ against _weight_ and color code your markers by the value of _guzzler_ (red for _guzzler_ = 1 and green for _guzzler_ = 0). Based on the graph you just created, do you think not controlling for _weight_ might lead to omitted variable bias in the regression in Q1? What is the direction of the bias? (1 point)
+
+3. Regress _price_ on _guzzler_, _weight_, _foreign_, _headroom_, and _displacement_. Interpret the coefficients. Do the regression results confirm your guess in Q3? (1 point)
+
+4. Variable _rep78_ indicates the car's repair record. The variable is poorly documented (we don't know that the value means) but take our word for it that the values from 1-5 indicate "very poor", "poor", "acceptable", "good", and "very good" record, respectively. Create five separate dummy variables _rep1_ - _rep5_ from _rep78_.
+
+Regress _price_ on _rep2_ through _rep5_ and control for _headroom_, _weight_, _foreign_, and _displacement_. Interpret the coefficients on _rep2_ through _rep5_. (1 point)
+
+## Interaction Effects (6 points)
+
+5. You suspect that the effect of _guzzler_ on _price_ may be conditioned by whether or not the car is manufactured abroad. Regress _price_ on _guzzler_, _foreign_ and their interaction, controlling for _headroom_, _weight_ and _displacement_. Interpret the coefficients on the main independent variables. Then, without using mathematical language, explain to your grandma what the coefficient on the interaction term means. (2 points)
+
+6. Regress _price_ on _foreign_, _mpg_ and their interaction, controlling for _headroom_, _weight_ and _displacement_. Interpret the coefficients of the main independent variables. Explain in layman terms the coefficient on the interaction term. (2 points)
+
+7. Report the results in Q7 with a marginal effect graph using *margins()* or *ggplot()*. Foreign cars tend to cost a lot more than domestic ones at lower values of _mpg_, and the effect dissipates as _mpg_ increases. From the coefficients in Q7, derive the precise value of _mpg_ at which the marginal effect of _foreign_ on _price_ reaches 0. Does the graph seem to confirm your calculation? (2 points)
+
+
+
+
+
+
+
+
+
+

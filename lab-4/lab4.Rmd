@@ -261,7 +261,7 @@ Log Transformation
 
 **level-log**, $y = \beta_1 ln(x) + \beta_0$, a $1\%$ change in x results in a $\beta_1/100$ unit change in y
 
-**log-level**, $ln(y) = \beta_1 x + \beta_0$, a 1 unit change in x results in a $\beta_1*100$ unit change in y
+**log-level**, $ln(y) = \beta_1 x + \beta_0$, a 1 unit change in x results in a $\beta_1*100$ percentage change in y
 
 **log-log**,  $ln(y) = \beta_1 ln(x) + \beta_0$, a $1\%$ change in x results in a $\beta_1\%$  change in y
 

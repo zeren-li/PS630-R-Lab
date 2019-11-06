@@ -1,0 +1,87 @@
+---
+title: "Lab9"
+author: "Zeren Li"
+date: "11/6/2019"
+output: html_document
+---
+
+## Roadmap
+
+- merging
+- data 
+
+## Merging two datasets
+
+An critical data management tool. Not intellectually challenging, but tedious.
+
+### The Basics
+Useful functions merging datasets from `dplyr` include `left_join`, `right_join`, `full_join`, `inner_join`.
+- `left_join(a, b, by = "x1")`: Join matching rows from b to a. (Keep all in `a`)
+- `right_join(a, b, by = "x1")`: Join matching rows from a to b. (keep all in `b`)
+- `full_join(a, b, by = "x1")`: Join data. Retain all values, all rows. (keep all -- either in `a` or `b`)
+- `inner_join(a, b, by = "x1")`: Join data. Retain only rows in both sets. (only keep those in both `a` and `b`)
+
+
+```{r}
+library(tidyverse)
+library(xtable)
+library(stargazer)
+library(wooldridge)
+
+data("band_members")
+data("band_instruments")
+
+band_members
+
+band_instruments
+
+# "Mutating" joins combine variables from the LHS and RHS
+band_members %>% inner_join(band_instruments, by = "name")
+
+band_members %>% left_join(band_instruments, by = "name")
+
+band_members %>% right_join(band_instruments, by = "name")
+
+# "Filtering" joins keep cases from the LHS
+band_members %>% semi_join(band_instruments, by = "name")#
+
+# "Nesting" joins keep cases from the LHS and nests the RHS
+band_members %>% nest_join(band_instruments, by = "name")
+
+# To suppress the message, supply by
+band_members %>% inner_join(band_instruments, by = "name")#> # A tibble: 2 x 3
+
+band_members %>% full_join(band_instruments2, by = c("name" = "artist"))#> # A tibble: 4 x 
+```
+
+## Difference-in-Differences
+
+
+```{r echo=FALSE}
+# attach the packages
+library(dplyr)
+library(foreign)
+
+tempfile_path <- tempfile()
+
+download.file("http://davidcard.berkeley.edu/data_sets/njmin.zip", destfile = tempfile_path)
+
+tempdir_path <- tempdir()
+
+unzip(tempfile_path, exdir = tempdir_path)
+# read in the dataset and assign it to `dat`
+
+# add FTE and FTE2 to `dat`
+dat <- dat %>% 
+mutate(FTE = nmgrs + empft + (0.5 * emppt),
+ FTE2 = nmgrs2 + empft2 + (0.5 * emppt2))
+
+ggplot(njmin, aes(wage_st)) + geom_density(aes(fill = state), alpha = 0.3) +
+    facet_wrap(vars(observation)) + theme_blog() +
+    theme(legend.title = element_blank(), plot.caption = element_text(colour = "white")) +
+    labs(title = "Distribution of starting wage rates in fast food restaurants",
+         caption = "On April 1st, 1992, New Jersey's minimum wage rose from $4.25 to $5.05. Source: Card and Krueger (1994)")
+
+```
+
+

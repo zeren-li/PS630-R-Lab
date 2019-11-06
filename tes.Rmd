@@ -1,0 +1,26 @@
+---
+title: "Untitled"
+author: "Zeren Li"
+date: "10/31/2019"
+output:   
+      pdf_document: default
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+$$
+\frac{\partial \hat{eval}}{\partial gender} = \hat{\beta}_2 + \hat{\beta}_3 \times beauty
+$$
+
+$$
+\hat{eval_i} = \hat \beta_0(4.08595) +\hat \beta_1(0.20027) beauty_i + \hat \beta_2(-0.19510) gender + \\ \hat \beta_3(-0.11266) gender_i \times beauty_i+ \hat u
+$$
+
+$$
+\frac{\partial \hat{eval}}{\partial beauty} = \hat{\beta}_1 + \hat{\beta}_3 \times gender = 0.20027  -0.11266 \times gender 
+$$
+
+
