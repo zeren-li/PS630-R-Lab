@@ -1,7 +1,0 @@
----
-title: "Lab 7"
-author: "Zeren Li"
-output:
-  pdf_document: default
----
-
