@@ -1,0 +1,79 @@
+---
+title: "Problem Set 10"
+date: "11/14/2019"
+output: pdf_document
+---
+
+**This problem set is due at 8:05 am on 11/21** 
+
+**Please upload both the Rmd file and the PDF file on Sakai**
+
+**Total points: 10**
+
+You have been hired by the Vietnam Chamber of Commerce and Industry (VCCI) to evaluate a training program on corporate governance and internal accounts management.  The designers of the training course believe that businesses which have higher quality corporate governance and strong procedures for managing internal purchases will have enjoy greater productivity and business growth.  Your job is to construct the research design for the experiment.
+
+1. Load the dataset vietnamese_firms.dta. This data is the 2016 Enterprise Survey, annual survey of businesses in Vietnam conducted by the General Statistical Office. At the top of the file, set a seed (`set.seed(2019)`).  This command is important as it will ensure that the randomization sequence is the same for all students. (1 point)
+
+2. What type of experimental design (i.e. encouragement, over-subscription) do you believe is most appropriate for this study?  Explain why? (1 point)
+
+3. Using the data provided perform a power calculation in R or using Power Calculator(https://egap.shinyapps.io/Power_Calculator/). The managers of the training program believe that firms exposed to the management training program will experience a 10% increase in profitability above the control group.  They estimate a standard deviation of 870 in profitability. Profitability is coded as _profit_ in the dataset. Assuming individual level randomization, how many firms do you need to sample to have sufficient power to identify a statistically significant effect (.05 level) if one exists? (2 points)
+
+4. For logistical reasons, VCCI has suggested performing the training at the provincial level. There are 63 provinces in Vietnam. Remove province 1 (`province == 1`). Then, we would like to randomly sample 31 provinces to be in the control group and 31 provinces for the treatment group.  Using the **clus.rho** command, calculate the intracluster correlation in profitability before the experiment.  Perform a power calculation that takes into account this clustered design suggestion. (2 points)
+
+```{r, include=FALSE}
+library(tidyverse)
+library(haven)
+library(randomizr)
+
+```
+
+```{r}
+set.seed(1)
+firm <- read_dta("vietnamese_firms.dta") %>%
+      filter(province != "01")
+
+prov_treat =  data.frame(
+province = unique(firm$province),
+rd_id = simple_ra(62,.5)
+)
+
+
+head(prov_treat)
+sample = firm %>%  group_by(ownership) %>%
+  sample_frac(.01)
+
+head(sample)
+```
+
+5. Using the number of observations from your power calculation in question 3, draw a random sample of firms for the experiment, blocking on firm ownership (_ownership_).  Use R's `sample_n()`, `sample_frac()` functions. (1 point)
+
+6.  Again, blocking on _ownership_, randomly assign an equal number of firms to the control and treatment group. You can use `block_ra()`  (1 point)
+
+
+```{r}
+# package for random assignment
+
+set.seed(1)
+
+z = block_ra(sample$ownership )
+
+table(z, sample$ownership)
+
+sample$treat <- z
+
+sample %>% arrange(ownership ,id, treat)
+head(sample)
+```
+
+7.  What sorts of limitations (i.e. LATE, attrition) do you expect for this experiment? What can be done to mitigate the effects of those problems? (2 points)
+
+
+
+
+
+
+
+
+
+
+

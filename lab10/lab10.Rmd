@@ -1,0 +1,191 @@
+---
+title: "Lab 10"
+author: "Zeren Li"
+date: "11/13/2019"
+output:
+  pdf_document: default
+---
+
+## Roadmap
+
+- Review HW7&8
+
+- Power Calculator
+
+- Sampling 
+
+## Power Calculator
+
+https://egap.shinyapps.io/Power_Calculator/
+
+```{r,include=FALSE}
+library(tidyverse)
+```
+
+```{r}
+# https://egap.shinyapps.io/Power_Calculator/
+# example
+# we have a sample as follows, 1000 obs, 10 groups, 2 blocks
+set.seed(2019)
+
+# set a population
+pop =data.frame(y =  rnorm(1000,50,30),
+                group = rep( seq(1:10), 100 ),
+                block = as.factor(c(rep(1,600), rep(2,400))))
+
+mean(pop$y)  # rnorm output may be different using different machines
+```
+
+- we expect a 20% increase in y if the treatment is assigned
+- we expect the standard deviation of the treatment: 20 
+- mean of the treatment: 49.14805+ 9.82961 = 58.97766
+- mean of the control: 49.14805
+- delta (treatment effect size): 9.82961
+- level of power: 0.8
+
+
+```{r}
+# We will sample at 67 obs for treatment and control groups. 
+# In total, we have to sample at least 134 obs.
+power.t.test( delta = 9.688, sd = 20, power = .8, sig.level = .05)
+
+# the algorithm from power calculator app
+# the function
+power_calculator <- function(mu_t, mu_c, sigma, alpha=0.05, N){
+  lowertail <- (abs(mu_t - mu_c)*sqrt(N))/(2*sigma)
+  uppertail <- -1*lowertail
+  beta <- pnorm(lowertail- qnorm(1-alpha/2), lower.tail=TRUE) + 
+    1 - pnorm(uppertail- qnorm(1-alpha/2), lower.tail=FALSE)
+  return(beta)
+}
+Ns_small <- as.matrix(1:100000)
+
+# specify mu_t, mu_c, sigma, alpha in the power
+
+betas_small <- apply(X=Ns_small,MARGIN = 1,FUN = power_calculator, mu_t= 58.128, mu_c=48.44, sigma=20 ,alpha=.05)
+
+Ns_small[which.max(betas_small>=.8)]
+```
+
+### Clustered Design
+
+```{r}
+# example
+# mean of the treatment: 48.44+ 9.688 = 58.128
+# mean of the control: 48.44
+# delta(treatment effect size): 9.688
+# level of power: 0.8
+# standard deviation of treatment: 20
+# level of power: 0.8
+# number of clusters: 2
+# size of each cluster: 5
+# ICC (intra cluster correlation): ICC is from the population
+
+# compute ICC
+library(fishmethods)
+library(haven)
+
+# ICC = 0.00789
+clus.rho(popchar=pop$y,cluster=pop$group)
+
+
+power_calculator_cluster <- function(mu_t, mu_c, sigma, ICC, alpha=0.05, n_clus_per_arm, N){
+  n_per_clus <- N/(n_clus_per_arm*2)
+  if(n_per_clus < 1){return(NA)}
+  lowertail <- (abs(mu_t - mu_c) * sqrt((n_clus_per_arm - 1)*n_per_clus))/
+                      sqrt((2*(sigma^2) * (1 + (n_per_clus-1)*ICC)))
+  uppertail <- -1*lowertail
+  beta <- pnorm(lowertail - qnorm(1-alpha/2), lower.tail=TRUE) + 
+    1 - pnorm(uppertail - qnorm(1-alpha/2), lower.tail=FALSE)
+  return(beta)
+}
+
+Ns_small <- as.matrix(1:100000)
+
+# specify mu_t,mu_c,sigma,alpha,
+# ICC (intra cluster correlation), n_clus_per_arm(size of each cluster)
+
+betas_small <- apply(X=Ns_small,MARGIN = 1, FUN = power_calculator_cluster, mu_t= 58.128, mu_c=48.44, sigma=20, alpha=.05, ICC =  0.007897022, n_clus_per_arm = 5)
+# specify the level of power: .8
+Ns_small[which.max(betas_small>=.8)]
+```
+
+### Sampling
+
+```{r}
+# randomly sample 134 obs from the population
+sample1 = pop %>%
+  # add id
+  mutate(id = row_number()) %>%
+  sample_n(134)
+
+## by proportion  134/1000
+sample2 = pop %>%
+  # add id
+  mutate(id = row_number()) %>%
+  sample_frac(.134)
+
+# blocking: randomly sample (136/2 = 68) obs from block 1 and 2
+sample3 <- pop %>%
+  # add id
+  mutate(id = row_number())  %>%
+  group_by(block) %>%
+  sample_n(68)
+
+table(pop$block)
+table(sample3$block)
+  
+# blocking: randomly sample 34 treated and 34 control in each block
+
+sample4 <- pop %>%
+  # add id
+  mutate(id = row_number())  %>%
+  group_by(block) %>%
+  sample_n(68) 
+
+# package for random assignment
+library(randomizr)
+
+z = block_ra(sample4$block )
+
+table(z, sample4$block)
+
+sample4$treat <- z
+
+sample4 %>% arrange(block ,id, treat)
+head(sample4)
+```
+
+# Alternative Sampling Strategy
+
+https://cran.r-project.org/web/packages/randomizr/vignettes/randomizr_vignette.html
+
+```{r}
+# complete random assignment
+Z <- complete_ra(N = 100, m = 50)
+table(Z)
+
+# This makes a cluster variable: one unit in cluster "a", two in "b"...
+clust_var <- rep(letters[1:15], times = 1:15)
+
+Z <- cluster_ra(
+  clusters = clust_var,
+  m_each = c(4, 4, 7),
+  conditions = c("control", "placebo", "treatment")
+  )
+table(Z, clust_var)
+```
+
+```{r}
+blocks <- rep(c("A", "B", "C"), c(50, 100, 200))
+
+block_ra(blocks = blocks)
+# defaults to half of each block block_ra(blocks = blocks)
+# can change with block_m block_ra(blocks = blocks,
+
+block_ra(blocks = blocks,
+block_m = c(20, 30, 40))
+```
+
+
+

@@ -31,10 +31,10 @@ library(car)
 ### Vector
 
 ```{r}
-# unit Vector
+# unit vector
 matrix(1,3,1)
 
-#zero vector
+# zero vector
 matrix(0,3,1)
 ```
 
@@ -86,7 +86,7 @@ matrix(1,3,2)
 #zero matrix
 matrix(0,3,2)
 
-# diagonal Matrix
+# diagonal matrix
 S <- matrix(c(2,3,-2,1,2,2,4,2,3),3,3)
 S
 diag(S)
@@ -182,7 +182,7 @@ dim(discrim)
 names(discrim)
 ```
 
-$$psoda = \beta_0 + \beta_1 prpblck + income+ u.$$
+$$psoda = \beta_0 + \beta_1 prpblck + \beta_2 income+ u.$$
 
 ## Pairs Plots
 
@@ -197,21 +197,24 @@ ggpairs(discrim1)
 ### Summary Statistics
 
 ```{r, results="asis", warning= FALSE}
+discrim1
 stargazer(discrim1, header = FALSE)
 ```
 
 
 ```{r}
-# indepedent variable
+# indepedent variables
 X_ncons <- as.matrix(discrim1[2:3]) 
 
 # constant
 cons <-  as.matrix( rep(1,length(discrim1$psoda)))
 
 X <- cbind(cons,X_ncons)
+colnames(X) <- c("constant", "prpblck", "income" )
+
 y <- as.matrix(discrim1[1])
 
-b<- solve(t(X) %*% X) %*% t(X)%*%y
+b <- solve(t(X) %*% X) %*% t(X)%*%y
 b
 
 # y hat
@@ -223,6 +226,7 @@ colnames(y_hat_byhand) <- "y_hat_byhand"
 u_hat = y-y_hat_byhand 
 
 m1 <- lm(psoda ~ prpblck + income, discrim1)
+summary(m1)
 y_hat <- predict(m1)
 
 data.frame(y, y_hat_byhand,  y_hat ) %>% head()
@@ -323,12 +327,12 @@ stargazer(m1,m2,m3,m4, type = "latex")
 $$VIF_j = 1/(1-R_j^2)$$
 
 * we would like $VIF_j$ to be smaller
-* Rule of thumb: If $VIF_j$ is above 10 (equivalently, $R^2_j$ is above .9), then we conclude that multicollinearity is a “problem” for estimating bj. But a $VIF_j$ above 10 does not mean that the standard deviation of $b^j$ is too large to $b$
+* Rule of thumb: If $VIF_j$ is above 10 (equivalently, $R^2_j$ is above .9), then we conclude that multicollinearity is a “problem” for estimating bj. But a $VIF_j$ above 10 does not mean that the standard deviation of $b_j$ is too large to $b$
 
 ```{r}
 # fit the model
 mv1 <- lm( prpblck ~ prppov + lincome, discrim)
-
+summary(mv1)
 # auxilliary R-squared
 a_r_2 <- summary(mv1)$r.squared
 
@@ -345,7 +349,7 @@ a_r_2 <- summary(mv1)$r.squared
 ### `VIF()`
 
 ```{r}
-vif(mv1)
+vif(m4)
 ```
 
 # What if adding more control variables?

@@ -1,0 +1,269 @@
+---
+title: "Panel Data"
+author: "Zeren Li"
+date: "1/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Panel Data
+
+Regression using panel data may mitigate omitted variable bias when there is no information on variables that correlate with both the regressors of interest and the independent variable and if these variables are constant in the time dimension or across entities. Provided that panel data is available panel regression methods may improve upon multiple regression models which, as discussed in Chapter 9, produce results that are not internally valid in such a setting.
+
+We cover:
+
+- notation for panel data
+- fixed effects regression using time and/or entity fixed effects
+- computation of standard errors in fixed effects regression models
+
+```{r, eval = "html", results='asis', echo=F, purl=F}
+cat('
+In contrast to cross-section data where we have observations on $n$ subjects (entities), panel data has observations on $n$ entities at $T\\geq2$ time periods. This is denoted
+$$(X_{it},Y_{it}), \\ i=1,\\dots,n \\ \\ \\ \\text{and} \\ \\ \\ t=1,\\dots,T $$
+where the index $i$ refers to the entity while $t$ refers to the time period.
+
+')
+```
+
+Sometimes panel data is also called longitudinal data as it adds a temporal dimension to cross-sectional data. 
+
+## Example: Traffic Deaths and Alcohol Taxes 
+
+`Fatalities`: US traffic fatalities panel data for the “lower 48” US states (i.e., excluding Alaska and Hawaii), annually for 1982 through 1988.
+
+```{r, warning=FALSE, message=FALSE}
+# load the package and the dataset
+library(AER)
+data(Fatalities)
+```
+
+```{r, warning=FALSE, message=FALSE}
+# obtain the dimension
+dim(Fatalities)
+```
+
+```{r, warning=FALSE, message=FALSE}
+# list the first few observations
+head(Fatalities)
+```
+
+We start by reproducing Figure 10.1 of the book. To this end we estimate simple regressions using data for years 1982 and 1988 that model the relationship between beer tax (adjusted for 1988 dollars) and the traffic fatality rate, measured as the number of fatalities per 10000 inhabitants. Afterwards, we plot the data and add the corresponding estimated regression functions. 
+
+```{r}
+# define the fatality rate
+Fatalities$fatal_rate <- Fatalities$fatal / Fatalities$pop * 10000
+# subset the data
+Fatalities1982 <- subset(Fatalities, year == "1982")
+Fatalities1988 <- subset(Fatalities, year == "1988")
+```
+
+```{r, warning=FALSE, message=FALSE}
+# estimate simple regression models using 1982 and 1988 data
+fatal1982_mod <- lm(fatal_rate ~ beertax, data = Fatalities1982)
+summary(fatal1982_mod)
+
+fatal1988_mod <- lm(fatal_rate ~ beertax, data = Fatalities1988)
+coeftest(fatal1982_mod, vcov. = vcovHC, type = "HC1")
+
+coeftest(fatal1988_mod, vcov. = vcovHC, type = "HC1")
+```
+
+The estimated regression functions are
+\begin{align*}
+  \widehat{FatalityRate} =& \, \underset{(0.15)}{2.01} + \underset{(0.13)}{0.15} \times BeerTax \quad (1982 \text{ data}), \\
+  \widehat{FatalityRate} =& \, \underset{(0.11)}{1.86} + \underset{(0.13)}{0.44} \times BeerTax \quad (1988 \text{ data}).
+\end{align*}
+
+<div class="unfolded">
+```{r}
+# plot the observations and add the estimated regression line for 1982 data
+plot(x = Fatalities1982$beertax, 
+     y = Fatalities1982$fatal_rate, 
+     xlab = "Beer tax (in 1988 dollars)",
+     ylab = "Fatality rate (fatalities per 10000)",
+     main = "Traffic Fatality Rates and Beer Taxes in 1982",
+     ylim = c(0, 4.5),
+     pch = 20, 
+     col = "steelblue")
+abline(fatal1982_mod, lwd = 1.5)
+# plot observations and add estimated regression line for 1988 data
+plot(x = Fatalities1988$beertax, 
+     y = Fatalities1988$fatal_rate, 
+     xlab = "Beer tax (in 1988 dollars)",
+     ylab = "Fatality rate (fatalities per 10000)",
+     main = "Traffic Fatality Rates and Beer Taxes in 1988",
+     ylim = c(0, 4.5),
+     pch = 20, 
+     col = "steelblue")
+abline(fatal1988_mod, lwd = 1.5)
+```
+
+## Panel Data with Two Time Periods: "Before and After" Comparisons {#PDWTTP}
+
+Suppose there are only $T=2$ time periods $t=1982,1988$. This allows us to analyze differences in changes of the the fatality rate from year 1982 to 1988. We start by considering the population regression model $$FatalityRate_{it} = \beta_0 + \beta_1 BeerTax_{it} + \beta_2 Z_{i} + u_{it}$$ where the $Z_i$ are state specific characteristics that differ between states but are *constant over time*. For $t=1982$ and $t=1988$ we have
+\begin{align*}
+  FatalityRate_{i1982} =&\, \beta_0 + \beta_1 BeerTax_{i1982} + \beta_2 Z_i + u_{i1982}, \\
+  FatalityRate_{i1988} =&\, \beta_0 + \beta_1 BeerTax_{i1988} + \beta_2 Z_i + u_{i1988}.
+\end{align*}
+
+We can eliminate the $Z_i$ by regressing the difference in the fatality rate between 1988 and 1982 on the difference in beer tax between those years:
+$$FatalityRate_{i1988} - FatalityRate_{i1982} = \beta_1 (BeerTax_{i1988} - BeerTax_{i1982}) + u_{i1988} - u_{i1982}$$
+This regression model yields an estimate for $\beta_1$ robust a possible bias due to omission of the $Z_i$, since these influences are eliminated from the model. Next we estimate a regression based on the differenced data and plot the estimated regression function.
+
+```{r}
+# compute the differences 
+diff_fatal_rate <- Fatalities1988$fatal_rate - Fatalities1982$fatal_rate
+diff_beertax <- Fatalities1988$beertax - Fatalities1982$beertax
+# estimate a regression using differenced data
+fatal_diff_mod <- lm(diff_fatal_rate ~ diff_beertax)
+coeftest(fatal_diff_mod, vcov = vcovHC, type = "HC1")
+```
+
+Including the intercept allows for a change in the mean fatality rate in the time between 1982 and 1988 in the absence of a change in the beer tax.
+
+We obtain the OLS estimated regression function $$\widehat{FatalityRate_{i1988} - FatalityRate_{i1982}} = -\underset{(0.065)}{0.072} -\underset{(0.36)}{1.04} \times (BeerTax_{i1988}-BeerTax_{i1982}).$$
+
+<div class="unfolded">
+```{r, fig.align='center'}
+# plot the differenced data
+plot(x = diff_beertax, 
+     y = diff_fatal_rate, 
+     xlab = "Change in beer tax (in 1988 dollars)",
+     ylab = "Change in fatality rate (fatalities per 10000)",
+     main = "Changes in Traffic Fatality Rates and Beer Taxes in 1982-1988",
+     xlim = c(-0.6, 0.6),
+     ylim = c(-1.5, 1),
+     pch = 20, 
+     col = "steelblue")
+# add the regression line to plot
+abline(fatal_diff_mod, lwd = 1.5)
+```
+</div>
+
+
+The estimated coefficient on beer tax is now negative and significantly different from zero at $5\%$. Its interpretation is that raising the beer tax by $\$1$ causes traffic fatalities to decrease by $1.04$ per $10000$ people. This is rather large as the average fatality rate is approximately $2$ persons per $10000$ people.
+
+```{r}
+# compute mean fatality rate over all states for all time periods
+mean(Fatalities$fatal_rate)
+```
+
+Once more this outcome is likely to be a consequence of omitting factors in the single-year regression that influence the fatality rate and are correlated with the beer tax *and* change over time. The message is that we need to be more careful and control for such factors before drawing conclusions about the effect of a raise in beer taxes.
+
+The approach presented in this section discards information for years $1983$ to $1987$. A method that allows to use data for more than $T=2$ time periods and enables us to add control variables is the fixed effects regression approach.
+
+## Fixed Effects Regression
+
+Consider the panel regression model
+
+$$Y_{it} = \beta_0 + \beta_1 X_{it} + \beta_2 Z_i +  u_{it}$$
+where the $Z_i$ are unobserved time-invariant heterogeneities across the entities $i=1,\dots,n$. We aim to estimate $\beta_1$, the effect on $Y_i$ of a change in $X_i$ holding constant $Z_i$. Letting $\alpha_i = \beta_0 + \beta_2 Z_i$ we obtain the model
+\begin{align}
+Y_{it} = \alpha_i + \beta_1 X_{it} + u_{it} .
+\end{align}
+Having individual specific intercepts $\alpha_i$, $i=1,\dots,n$, where each of these can be understood as the fixed effect of entity $i$, this model is called the *fixed effects model*. 
+The variation in the $\alpha_i$, $i=1,\dots,n$ comes from the $Z_i$. The model can be rewritten as a regression model containing $n-1$ dummy regressors and a constant:
+
+\begin{align}
+Y_{it} = \beta_0 + \beta_1 X_{it} + \gamma_2 D2_i + \gamma_3 D3_i + \cdots + \gamma_n Dn_i + u_{it} 
+\end{align}
+
+The above has $n$ different intercepts --- one for every entity. 
+
+The fixed effects  model can be generalized to contain more than just one determinant of $Y$ that is correlated with $X$ and changes over time. We present the generalized fixed effects regression model. 
+
+
+\\begin{align}
+Y_{it} = \\beta_1 X_{1,it} + \\cdots + \\beta_k X_{k,it} + \\alpha_i + u_{it} (\\#eq:gfemodel)
+\\end{align}
+with $i=1,\\dots,n$ and $t=1,\\dots,T$. The $\\alpha_i$ are entity-specific intercepts that capture heterogeneities across entities. An equivalent representation of this model is given by
+\\begin{align}
+Y_{it} = \\beta_0 + \\beta_1 X_{1,it} + \\cdots + \\beta_k X_{k,it} + \\gamma_2 D2_i + \\gamma_3 D3_i + \\cdots + \\gamma_n Dn_i  + u_{it} (\\#eq:gdrmodel)
+\\end{align}
+where the $D2_i,D3_i,\\dots,Dn_i$ are dummy variables.
+
+
+### Estimation and Inference {-}
+
+Software packages use a so-called "entity-demeaned" OLS algorithm which is computationally more efficient than estimating regression models with $k+n$ regressors as needed for models \@ref(eq:gfemodel) and \@ref(eq:gdrmodel).
+
+Taking averages on both sides of \@ref(eq:femodel) we obtain
+\begin{align*}
+\frac{1}{n} \sum_{i=1}^n Y_{it} =& \, \beta_1 \frac{1}{n} \sum_{i=1}^n X_{it} + \frac{1}{n} \sum_{i=1}^n a_i + \frac{1}{n} \sum_{i=1}^n u_{it} \\
+\overline{Y} =& \, \beta_1 \overline{X}_i + \alpha_i + \overline{u}_i. 
+\end{align*}
+Subtraction from \@ref(eq:femodel) yields
+\begin{align}
+\begin{split}
+Y_{it} - \overline{Y}_i =& \, \beta_1(X_{it}-\overline{X}_i) + (u_{it} - \overline{u}_i) \\
+\overset{\sim}{Y}_{it} =& \, \beta_1 \overset{\sim}{X}_{it} + \overset{\sim}{u}_{it}. 
+\end{split} (\#eq:edols)
+\end{align}
+In this model, the OLS estimate of the parameter of interest $\beta_1$ is equal to the estimate obtained using \@ref(eq:drmodel) --- without the need to estimate $n-1$ dummies and an intercept. 
+
+We conclude that there are two ways of estimating $\beta_1$ in the fixed effects regression:
+
+1. OLS of the dummy regression model as shown in \@ref(eq:drmodel) 
+
+2. OLS using the entity demeaned data as in \@ref(eq:edols)
+
+Provided the fixed effects regression assumptions stated in Key Concept 10.3 hold, the sampling distribution of the OLS estimator in the fixed effects regression model is normal in large samples. The variance of the estimates can be estimated and we can compute standard errors, $t$-statistics and confidence intervals for coefficients. In the next section, we see how to estimate a fixed effects model using `R` and how to obtain a model summary that reports heteroskedasticity-robust standard errors. We leave aside complicated formulas of the estimators. See Chapter 10.5 and Appendix 10.2 of the book for a discussion of theoretical aspects.
+
+
+### Application to Traffic Deaths {-}
+
+Following Key Concept 10.2, the simple fixed effects model for estimation of the relation between traffic fatality rates and the beer taxes is
+\begin{align}
+FatalityRate_{it} = \beta_1 BeerTax_{it} + StateFixedEffects + u_{it}, (\#eq:fatsemod)
+\end{align}
+a regression of the traffic fatality rate on beer tax and 48 binary regressors --- one for each federal state.
+
+We can simply use the function `lm()` to obtain an estimate of $\beta_1$.
+
+```{r}
+fatal_fe_lm_mod <- lm(fatal_rate ~ beertax + state - 1, data = Fatalities)
+fatal_fe_lm_mod
+```
+
+As discussed in the previous section, it is also possible to estimate $\beta_1$ by applying OLS to the demeaned data, that is, to run the regression
+
+$$\overset{\sim}{FatalityRate} = \beta_1 \overset{\sim}{BeerTax}_{it} + u_{it}. $$
+
+```{r, eval=F}
+# obtain demeaned data
+Fatalities_demeaned <- with(Fatalities,
+            data.frame(fatal_rate = fatal_rate - ave(fatal_rate, state),
+            beertax = beertax - ave(beertax, state)))
+# estimate the regression
+summary(lm(fatal_rate ~ beertax - 1, data = Fatalities_demeaned))
+```
+
+
+The function `ave` is convenient for computing group averages. We use it to obtain state specific averages of the fatality rate and the beer tax.
+
+Alternatively one may use `felm()` from the package with the same name. 
+
+```{r}
+library(lfe)
+# felm(dependent variable ~ independent variable| fixed effects variables|instrumental variables | level of clustered se, data )
+m1 =felm(fatal_rate ~ beertax| state |0|state, Fatalities )
+summary(m1)
+```
+
+The estimated coefficient is again $-0.6559$. Note that `felm()` uses the entity-demeaned OLS algorithm and thus does not report dummy coefficients. The estimated regression function is 
+
+\begin{align}
+\widehat{FatalityRate} = -\underset{(0.29)}{0.66} \times BeerTax + StateFixedEffects. (\#eq:efemod)
+\end{align}
+
+The coefficient on $BeerTax$ is negative and significant. The interpretation is that the estimated reduction in traffic fatalities due to an increase in the real beer tax by $\$1$ is $0.66$ per $10000$ people, which is still pretty high. Although including state fixed effects eliminates the risk of a bias due to omitted factors that vary across states but not over time, we suspect that there are other omitted variables that vary over time and thus cause a bias.
+
+# Resource
+
+- Econometric With R: https://www.econometrics-with-r.org/10-3-fixed-effects-regression.html
+
+
+

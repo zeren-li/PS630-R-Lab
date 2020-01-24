@@ -12,10 +12,10 @@ output:
 #install.packages("haven") 
 #install.packages("xtable") 
 
-library(haven)
-library(tidyverse)
-library(stargazer)
-library(xtable)
+library(haven) # read stata file
+library(tidyverse) # tidyverse
+library(stargazer) # regression table export
+library(xtable) # other table presentation
 ceo <- read_dta("./CEOSAL2.DTA")
 ```
 
@@ -87,7 +87,7 @@ The *total sum of squares* ($TSS$) is the sum of squared deviations of the $Y_i$
 \begin{align*}
   ESS & =  \sum_{i = 1}^n \left( \hat{Y_i} - \overline{Y} \right)^2   \\
   TSS & =  \sum_{i = 1}^n \left( Y_i - \overline{Y} \right)^2  \\
-  SSR & = \sum_{i = 1}^n \left( Y_i - \hat{Y} \right)^2  \\
+  SSR & = \sum_{i = 1}^n \left( Y_i - \hat{Y_i} \right)^2  \\
   R^2 & = \frac{ESS}{TSS} \\
 \end{align*}
 
@@ -98,6 +98,8 @@ The *total sum of squares* ($TSS$) is the sum of squared deviations of the $Y_i$
 ceo %>% 
   select(salary, sales) %>%
   summary()
+
+summary(ceo)
 ```
 
 ```{r}
@@ -133,15 +135,18 @@ x <- ceo$sales
 ```{r}
 m1 <- lm(salary ~ sales , ceo)
 
+m2 <- lm(salary ~ sales + comten + grad , ceo)
+ 
 summary(m1)
+summary(m2)
 ```
 
 ## Export regression table
 
 ```{r, results='asis'}
-stargazer(m1, header = F,
+stargazer(m1, m2, header = F, type = "text",
           title = "Effect of Sales on Salary", 
-          covariate.labels = c("Sales"), 
+          covariate.labels = c("Sales", "Term Length", "Graduate School"), 
           dep.var.labels = c("CEO's Salary"))
 ```
 
@@ -300,4 +305,4 @@ ggplot2 website: https://ggplot2.tidyverse.org/
 
 cheatsheet: https://github.com/rstudio/cheatsheets/blob/master/data-visualization-2.1.pdf
 
-top 50 visualization: http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
+top 50 visualizations: http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html

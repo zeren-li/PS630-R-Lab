@@ -19,21 +19,23 @@ output: pdf_document
 Load `moms.dta` as `moms`, `dads.dta` as `dads`, `faminc` as `faminc`, `kids3.dta` as `kids3` 
 1. Append two datasets, stacking them one atop the other, show the entire data to see if this works correctly. Next, show the average income of each family.
 
-2. In the appended dataset, create a dummy variable called `momdad`, show the average income of moms and dads using `group_by()`.
+2. In the appended dataset, create a dummy variable called `momdad`, coded it as 1 if the person is a dad and 0 otherwise. Show the average income of moms and dads using `group_by()`.
 
-3. Combine the `dads` with the `faminc` by variable `famid`, having the dads information and the family information side by side. 
+3. Combine the `dads` with the `faminc` by variable `famid`, having the dads' information and the family information side by side. 
 
 4. Remove family 1 in  `dads`, remove family 3 in `faminc`, merge `dads` and `faminc`  in the following ways:
+
     4.1 return all rows from `faminc`, and all columns from `faminc` and `dads`.
+    
     4.2 return all rows from `dads`, and all columns from `dads` and `faminc`.
+    
     4.3 return all rows and all columns from both `dads` and `faminc`.
 
 5. One-to-many match merging: merge `dads` with `kids3`. To be noted, there can be multiple kids per dad and hence this is a one-to-many merge
 
 ## Difference-in-Differences
 
-In this homework, we replicate Holzer, Block, Cheatham, Knott (1993) using `jtrain.dta`. "The paper explores the effects of a state-financed training grant program for manufacturing firms in Michigan. Using a three-year panel of data from a
-unique survey of firms that applied for these grants, the authors estimate the
+In this homework, we replicate Holzer, Block, Cheatham, Knott (1993) using `jtrain.dta`. "The paper explores the effects of a state-financed training grant program for manufacturing firms in Michigan. Using a three-year panel of data from a unique survey of firms that applied for these grants, the authors estimate the
 effects of receipt of a grant on total hours." We will replicate the key findings of this paper as follows:
 
 Description of the policy treatment: "The data used for this analysis are from a unique survey of firms in Michigan that applied for training grants under the state's MJOB (Michigan Job Opportunity Bank Upgrade) program during 1988 and 1989.
@@ -46,7 +48,7 @@ For questions 6--7, only use the data from 1987 and 1988. Construct the Differen
 
 $$hrsemp_{it} = \beta_0 + \beta_1 grant_{it} + \beta_2 1(year = 1988) + \beta_3E_{i} + u_{it}$$
 
-where $1(year = 1988)$ is time dummy variable, coded as "1" if `year` equals 1988 and "0" otherwise. $Ei$ is a dummy variable for being a treatment (i.e. someone who would receive the grant in 1988). (Hints: $grant_{it}$ is the interaction of $1(year = 1988)$ and $E_{i}$)
+where $hrsemp_{it}$ is the annual hours of training per employee of firm $i$ in year $t$, $grant_{it}$ is the status of receiving grant, coded 1 if firm $i$ in year $t$ receives the grant and 0 otherise. $1(year = 1988)$ is time dummy variable, coded as "1" if `year` equals 1988 and "0" otherwise. $Ei$ is a dummy variable for being a treatment (i.e. someone who would receive the grant in 1988). (**Hints: $grant_{it}$ is the interaction of $1(year = 1988)$ and $E_{i}$**)
 
 8. Run the fixed effect regression:
 
